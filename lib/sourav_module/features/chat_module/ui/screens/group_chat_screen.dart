@@ -21,38 +21,17 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   late String senderMessage, receiverMessage;
   ScrollController scrollController = ScrollController();
   bool shouldEnable = false;
-  final List<String> _suggestions = ['John', 'Jane', 'Jim', 'Jill'];
-  String? _mention;
-  List<String> _filteredSuggestions = [];
 
   @override
   void initState() {
+    chatvm = context.read<ChatViewModel>();
     textEditingController = TextEditingController();
-    textEditingController.addListener(() {
-      setState(() {
-        final text = textEditingController.text;
-        final index = text.lastIndexOf('@');
-        if (index >= 0 && index < text.length - 1) {
-          final mention = text.substring(index + 1);
-          if (mention != _mention) {
-            _mention = mention;
-            _filteredSuggestions = _suggestions
-                .where((name) => name.startsWith(_mention!))
-                .toList();
-          }
-        } else {
-          _mention = null;
-
-          _filteredSuggestions = [];
-        }
-      });
-    });
+    textEditingController.addListener(chatvm.detectUserMention);
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
-    chatvm = context.read<ChatViewModel>();
     chatvm.setupControllers(
       textEditingController: textEditingController,
       scrollController: scrollController,
@@ -105,38 +84,32 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       body: Column(
         children: [
           Expanded(child: ChatListView(scrollController: scrollController)),
-          if (_filteredSuggestions.isNotEmpty)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: ListView.builder(
-                  itemCount: _filteredSuggestions.length,
-                  itemBuilder: (ontext, index) {
-                    return ListTile(
-                      tileColor: const Color.fromARGB(255, 80, 99, 111),
-                      title: Text(
-                        _filteredSuggestions[index],
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      onTap: () {
-                        final mention = _filteredSuggestions[index];
-                        final text = textEditingController.text;
-                        final indexs = text.lastIndexOf('@');
-                        textEditingController.value = TextEditingValue(
-                          text: text.substring(0, indexs + 1) + mention,
-                          selection: TextSelection.collapsed(
-                            offset: text.length,
+          Consumer<ChatViewModel>(
+            builder: (context, value, child) {
+              if (value.filteredSuggestions.isNotEmpty) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: ListView.builder(
+                      itemCount: value.filteredSuggestions.length,
+                      itemBuilder: (ontext, index) {
+                        return ListTile(
+                          tileColor: const Color.fromARGB(255, 80, 99, 111),
+                          title: Text(
+                            value.filteredSuggestions[index],
+                            style: const TextStyle(color: Colors.white),
                           ),
+                          onTap: () => chatvm.onUserMentionTap(index: index),
                         );
-                        setState(() {
-                          _filteredSuggestions = [];
-                        });
                       },
-                    );
-                  },
-                ),
-              ),
-            ),
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
           Selector<ChatViewModel, bool>(
             selector: (context, value) => value.shouldShowTypingIndicator,
             builder: (context, value, child) => TypingIndicator(

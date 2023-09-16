@@ -30,6 +30,18 @@ class ChatViewModel extends ChangeNotifier {
   bool shouldShowTypingIndicator = false;
   late ChatConversation conversations;
 
+  final List<String> _suggestions = ['John', 'Jane', 'Jim', 'Jill'];
+  List<String> get suggestions => _suggestions;
+
+  String? _mention;
+  String? get mention => _mention;
+  set setMention(newValue) => _mention = newValue;
+
+  List<String> _filteredSuggestions = [];
+  List<String> get filteredSuggestions => _filteredSuggestions;
+  set setFilteredSuggestions(List<String> newList) =>
+      _filteredSuggestions = newList;
+
   ChatGroup get getSelectedGroupChat =>
       groups.firstWhere((element) => element.name == selectedGroupName);
 
@@ -103,7 +115,6 @@ class ChatViewModel extends ChangeNotifier {
                 type: body.type,
               );
               messageBoxController.clear();
-              // FocusManager.instance.primaryFocus?.unfocus();
               break;
             case MessageType.IMAGE:
               ChatImageMessageBody body = msg.body as ChatImageMessageBody;
@@ -314,109 +325,146 @@ class ChatViewModel extends ChangeNotifier {
 
   void fetchPreviousMessages() async {
     log('fetchPreviousMessages() called!!!');
-    final conversation = await agoraChatClient.chatManager.getConversation(
-      getSelectedGroupChat.groupId,
-      type: ChatConversationType.GroupChat,
-      createIfNeed: true,
-    );
+    // final conversation = await agoraChatClient.chatManager.getConversation(
+    //   getSelectedGroupChat.groupId,
+    //   type: ChatConversationType.GroupChat,
+    // );
 
-    if (conversation != null) {
-      conversations = conversation;
-    }
+    final conversationsFromServer =
+        await agoraChatClient.chatManager.getConversationsFromServer();
 
     messageList.clear();
 
-    log('Group ID ==> ${getSelectedGroupChat.groupId}');
-    log('Conversation ID ==> ${conversation?.id}');
-    log('Conversation Type ==> ${conversation?.type}');
-    if (conversation != null) {
-      final msgList = await conversation.loadMessages();
-      conversation.markAllMessagesAsRead();
-      for (ChatMessage element in msgList) {
-        // await agoraChatClient.chatManager.sendGroupMessageReadAck(
-        //   element.msgId,
-        //   getSelectedGroupChat.groupId,
-        // );
+    for (ChatConversation conversation in conversationsFromServer) {
+      if (conversation.id == getSelectedGroupChat.groupId &&
+          conversation.type == ChatConversationType.GroupChat) {
+        conversations = conversation;
 
-        log('read => ${element.hasRead}');
-        log('hasReadAck ==> ${element.hasReadAck}');
-        log('hasDeliverAck => ${element.hasDeliverAck}');
-        switch (element.body.type) {
-          case MessageType.TXT:
-            final messageBody = element.body as ChatTextMessageBody;
-            messageList.add(
-              MessageData(
-                msgId: element.msgId,
-                message: messageBody.content,
-                isSender: element.direction == MessageDirection.SEND,
-                dateTime:
-                    DateTime.fromMillisecondsSinceEpoch(element.localTime),
-                from: element.from ?? '',
-                hasRead: element.hasRead,
-                hasDelivered: element.hasRead,
-                type: messageBody.type,
-              ),
-            );
-            break;
+        log('Group ID ==> ${getSelectedGroupChat.groupId}');
+        log('Conversation ID ==> ${conversation.id}');
+        log('Conversation Type ==> ${conversation.type}');
+        // if (conversation != null) {
+        final msgList = await conversation.loadMessages();
+        conversation.markAllMessagesAsRead();
+        for (ChatMessage element in msgList) {
+          // await agoraChatClient.chatManager.sendGroupMessageReadAck(
+          //   element.msgId,
+          //   getSelectedGroupChat.groupId,
+          // );
 
-          case MessageType.IMAGE:
-            final messageBody = element.body as ChatImageMessageBody;
-            messageList.add(
-              MessageData(
-                msgId: element.msgId,
-                message: messageBody.displayName ?? '',
-                imagePath: messageBody.remotePath,
-                isSender: element.direction == MessageDirection.SEND,
-                dateTime:
-                    DateTime.fromMillisecondsSinceEpoch(element.localTime),
-                from: element.from ?? '',
-                hasRead: element.hasRead,
-                hasDelivered: element.hasRead,
-                type: messageBody.type,
-              ),
-            );
-            break;
-          case MessageType.FILE:
-            final messageBody = element.body as ChatFileMessageBody;
-            messageList.add(
-              MessageData(
-                msgId: element.msgId,
-                message: messageBody.displayName ?? '',
-                filePath: messageBody.remotePath,
-                isSender: element.direction == MessageDirection.SEND,
-                dateTime:
-                    DateTime.fromMillisecondsSinceEpoch(element.localTime),
-                from: element.from ?? '',
-                hasRead: element.hasRead,
-                hasDelivered: element.hasRead,
-                type: messageBody.type,
-              ),
-            );
-            break;
+          log('read => ${element.hasRead}');
+          log('hasReadAck ==> ${element.hasReadAck}');
+          log('hasDeliverAck => ${element.hasDeliverAck}');
+          switch (element.body.type) {
+            case MessageType.TXT:
+              final messageBody = element.body as ChatTextMessageBody;
+              messageList.add(
+                MessageData(
+                  msgId: element.msgId,
+                  message: messageBody.content,
+                  isSender: element.direction == MessageDirection.SEND,
+                  dateTime:
+                      DateTime.fromMillisecondsSinceEpoch(element.localTime),
+                  from: element.from ?? '',
+                  hasRead: element.hasRead,
+                  hasDelivered: element.hasRead,
+                  type: messageBody.type,
+                ),
+              );
+              break;
 
-          case MessageType.CUSTOM:
-            ChatCustomMessageBody body = element.body as ChatCustomMessageBody;
-            log('event ==> ${body.event}');
-            displayMessage(
-              msgId: element.msgId,
-              text: body.params?['name'] ?? '',
-              contact: ContactData(
-                body.params?['name'] ?? '',
-                body.params?['number'] ?? '',
-              ),
-              from: element.from ?? '',
-              isSentMessage: element.direction == MessageDirection.SEND,
-              dateTime: DateTime.fromMicrosecondsSinceEpoch(element.localTime),
-              hasRead: element.hasReadAck,
-              hasDelivered: element.hasRead,
-              type: body.type,
-            );
-            break;
-          default:
+            case MessageType.IMAGE:
+              final messageBody = element.body as ChatImageMessageBody;
+              messageList.add(
+                MessageData(
+                  msgId: element.msgId,
+                  message: messageBody.displayName ?? '',
+                  imagePath: messageBody.remotePath,
+                  isSender: element.direction == MessageDirection.SEND,
+                  dateTime:
+                      DateTime.fromMillisecondsSinceEpoch(element.localTime),
+                  from: element.from ?? '',
+                  hasRead: element.hasRead,
+                  hasDelivered: element.hasRead,
+                  type: messageBody.type,
+                ),
+              );
+              break;
+            case MessageType.FILE:
+              final messageBody = element.body as ChatFileMessageBody;
+              messageList.add(
+                MessageData(
+                  msgId: element.msgId,
+                  message: messageBody.displayName ?? '',
+                  filePath: messageBody.remotePath,
+                  isSender: element.direction == MessageDirection.SEND,
+                  dateTime:
+                      DateTime.fromMillisecondsSinceEpoch(element.localTime),
+                  from: element.from ?? '',
+                  hasRead: element.hasRead,
+                  hasDelivered: element.hasRead,
+                  type: messageBody.type,
+                ),
+              );
+              break;
+
+            case MessageType.CUSTOM:
+              ChatCustomMessageBody body =
+                  element.body as ChatCustomMessageBody;
+              log('event ==> ${body.event}');
+              displayMessage(
+                msgId: element.msgId,
+                text: body.params?['name'] ?? '',
+                contact: ContactData(
+                  body.params?['name'] ?? '',
+                  body.params?['number'] ?? '',
+                ),
+                from: element.from ?? '',
+                isSentMessage: element.direction == MessageDirection.SEND,
+                dateTime:
+                    DateTime.fromMicrosecondsSinceEpoch(element.localTime),
+                hasRead: element.hasReadAck,
+                hasDelivered: element.hasRead,
+                type: body.type,
+              );
+              break;
+            default:
+          }
+          notifyListeners();
         }
-        notifyListeners();
+        // }
       }
     }
+  }
+
+  void detectUserMention() {
+    final text = messageBoxController.text;
+
+    final index = text.lastIndexOf('@');
+    if (index >= 0 && index < text.length - 1) {
+      final mentionedName = text.substring(index + 1);
+      if (mentionedName != mention) {
+        setMention = mentionedName;
+        setFilteredSuggestions =
+            suggestions.where((name) => name.startsWith(mention!)).toList();
+      }
+    } else {
+      setMention = null;
+      setFilteredSuggestions = [];
+    }
+    notifyListeners();
+  }
+
+  void onUserMentionTap({required int index}) {
+    final mention = filteredSuggestions[index];
+    final text = messageBoxController.text;
+    final indexs = text.lastIndexOf('@');
+    messageBoxController.value = TextEditingValue(
+      text: text.substring(0, indexs + 1) + mention,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    setFilteredSuggestions = [];
+    notifyListeners();
   }
 
   Future<void> pickImageAndSend() async {
