@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  agora_chat_sdk: ^1.1.1
+  # agora_chat_sdk: ^1.1.1
   provider: ^6.0.5
   intl: ^0.18.1
   flutter_svg: ^2.0.5
@@ -19,11 +19,20 @@ dependencies:
   path_provider: ^2.1.1
   fluttercontactpicker: ^4.7.0
   url_launcher: ^6.1.11
+  firebase_core: ^2.15.1
+  firebase_auth: ^4.9.0
+  firebase_database: ^10.2.6
+  firebase_ui_database: ^1.2.0
+  uuid: ^4.0.0
+  firebase_storage: ^11.2.7
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+
+dependency_overrides:
+  intl: ^0.17.0
 
 flutter:
   uses-material-design: true

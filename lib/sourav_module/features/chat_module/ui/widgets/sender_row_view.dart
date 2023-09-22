@@ -1,4 +1,4 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/message_data_model.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/common_message_widget.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 class SenderRowView extends StatefulWidget {
   const SenderRowView({Key? key, required this.messageData}) : super(key: key);
 
-  final MessageData messageData;
+  final Message messageData;
 
   @override
   State<SenderRowView> createState() => _SenderRowViewState();
@@ -20,13 +20,14 @@ class _SenderRowViewState extends State<SenderRowView> {
 
   @override
   void initState() {
-    updatedMessage = widget.messageData.message;
+    updatedMessage = widget.messageData.text;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).size.height * .2;
+    final chatVm = context.read<ChatViewModel>();
     return GestureDetector(
       onLongPress: () => _showPopupMenu(context, top),
       child: Row(
@@ -57,8 +58,7 @@ class _SenderRowViewState extends State<SenderRowView> {
                           color: Color(0XFF075E54),
                           borderRadius:
                               BorderRadius.all(Radius.circular(10.0))),
-                      child:
-                          CommonMessageWidget(messageData: widget.messageData),
+                      child: CommonMessageWidget(messages: widget.messageData),
                     ),
                   ],
                 ),
@@ -69,8 +69,9 @@ class _SenderRowViewState extends State<SenderRowView> {
                     Container(
                       margin: const EdgeInsets.only(right: 10.0, bottom: 8.0),
                       child: Text(
-                        intl.DateFormat('hh:mm a')
-                            .format(widget.messageData.dateTime),
+                        intl.DateFormat('hh:mm a').format(
+                            DateTime.fromMillisecondsSinceEpoch(
+                                widget.messageData.sentAt)),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8.0,
@@ -86,18 +87,20 @@ class _SenderRowViewState extends State<SenderRowView> {
                             right: 10,
                             child: Icon(
                               Icons.check,
-                              color: widget.messageData.hasRead
+                              color: (widget.messageData.seenBy.length ==
+                                      chatVm.groupMembers.length)
                                   ? Colors.blue
                                   : Colors.white,
                               size: 12,
                             ),
                           ),
-                          if (widget.messageData.hasDelivered)
+                          if (widget.messageData.seenBy.isNotEmpty)
                             Positioned(
                               left: 2,
                               child: Icon(
                                 Icons.check,
-                                color: widget.messageData.hasRead
+                                color: (widget.messageData.seenBy.length ==
+                                        chatVm.groupMembers.length)
                                     ? Colors.blue
                                     : Colors.white,
                                 size: 12,
@@ -135,7 +138,7 @@ class _SenderRowViewState extends State<SenderRowView> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
-                        initialValue: widget.messageData.message,
+                        initialValue: widget.messageData.text,
                         cursorColor: Colors.white,
                         keyboardType: TextInputType.multiline,
                         minLines: 1,
@@ -152,9 +155,7 @@ class _SenderRowViewState extends State<SenderRowView> {
                     ElevatedButton(
                       onPressed: () {
                         context.read<ChatViewModel>().editMessage(
-                              widget.messageData.msgId,
-                              updatedMessage,
-                            );
+                            widget.messageData.copyWith(text: updatedMessage));
                       },
                       child: const Text('Update'),
                     ),
@@ -169,7 +170,7 @@ class _SenderRowViewState extends State<SenderRowView> {
           onTap: () async {
             await context
                 .read<ChatViewModel>()
-                .deleteMessage(widget.messageData.msgId);
+                .deleteMessage(widget.messageData.id);
           },
           child: const Text('Delete'),
         ),

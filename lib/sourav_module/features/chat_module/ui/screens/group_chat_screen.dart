@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/chat_list_view.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/typing_indicator.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
@@ -19,7 +21,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   late final TextEditingController textEditingController;
   late String senderMessage, receiverMessage;
-  ScrollController scrollController = ScrollController();
+  late final ScrollController scrollController;
   bool shouldEnable = false;
 
   @override
@@ -27,6 +29,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     chatvm = context.read<ChatViewModel>();
     textEditingController = TextEditingController();
     textEditingController.addListener(chatvm.detectUserMention);
+    chatvm.fetchConversationByConversationId();
+
+    scrollController = ScrollController();
     super.initState();
   }
 
@@ -36,7 +41,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       textEditingController: textEditingController,
       scrollController: scrollController,
     );
-    chatvm.fetchPreviousMessages();
+    chatvm.fetchGroupConversationMembers();
     super.didChangeDependencies();
   }
 
@@ -61,7 +66,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             backgroundColor: const Color(0xFF90C953),
             child: Consumer<ChatViewModel>(
               builder: (context, value, child) => Text(
-                value.getSelectedGroupChat.name!.characters.first,
+                value.getSelectedConversation.name.characters.first,
                 style: const TextStyle(color: Colors.black),
               ),
             ),
@@ -69,7 +74,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         ),
         title: Consumer<ChatViewModel>(
           builder: (context, value, child) => ListTile(
-            title: Text(value.getSelectedGroupChat.name ?? '',
+            title: Text(value.selectedConversationName,
                 style: const TextStyle(color: Colors.white)),
           ),
         ),
@@ -173,7 +178,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 5.0),
                       child: GestureDetector(
-                        onTap: shouldEnable ? chatvm.sendMessage : null,
+                        onTap: shouldEnable
+                            ? () => chatvm.sendMessage(MessageType.TEXT)
+                            : null,
                         child: Icon(
                           Icons.send,
                           color: shouldEnable ? Colors.white : Colors.white30,

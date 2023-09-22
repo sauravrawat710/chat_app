@@ -1,4 +1,4 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/message_data_model.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/common_message_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -8,7 +8,7 @@ class ReceiverRowView extends StatelessWidget {
   const ReceiverRowView({Key? key, required this.messageData})
       : super(key: key);
 
-  final MessageData messageData;
+  final Message messageData;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class ReceiverRowView extends StatelessWidget {
             padding: const EdgeInsets.only(left: 10.0, top: 1.0, bottom: 9.0),
             child: CircleAvatar(
               backgroundColor: const Color(0xFF90C953),
-              child: Text(messageData.from.characters.first,
+              child: Text(messageData.sentBy.characters.first,
                   style: const TextStyle(color: Colors.black)),
             ),
           ),
@@ -44,14 +44,15 @@ class ReceiverRowView extends StatelessWidget {
                         shape: BoxShape.rectangle,
                         color: Color(0XFF5A5A5A),
                         borderRadius: BorderRadius.all(Radius.circular(10.0))),
-                    child: CommonMessageWidget(messageData: messageData),
+                    child: CommonMessageWidget(messages: messageData),
                   ),
                 ],
               ),
               Container(
                 margin: const EdgeInsets.only(left: 10.0, bottom: 8.0),
                 child: Text(
-                  intl.DateFormat('hh:mm a').format(messageData.dateTime),
+                  intl.DateFormat('hh:mm a').format(
+                      DateTime.fromMillisecondsSinceEpoch(messageData.sentAt)),
                   style: const TextStyle(color: Colors.white, fontSize: 7.0),
                 ),
               ),

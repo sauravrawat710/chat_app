@@ -1,16 +1,17 @@
-import 'dart:developer';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:agora_chat_module/firebase_options.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/select_group_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FlutterDownloader.initialize();
   runApp(const MyApp());
 }
@@ -28,7 +29,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ReceivePort _port = ReceivePort();
+  final ReceivePort _port = ReceivePort();
 
   @override
   void initState() {
@@ -37,9 +38,9 @@ class _MyAppState extends State<MyApp> {
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
-      String id = data[0];
-      DownloadTaskStatus status = DownloadTaskStatus(data[1]);
-      int progress = data[2];
+      // String id = data[0];
+      // DownloadTaskStatus status = DownloadTaskStatus(data[1]);
+      // int progress = data[2];
       setState(() {});
     });
 

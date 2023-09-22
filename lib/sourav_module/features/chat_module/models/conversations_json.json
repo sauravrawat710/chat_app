@@ -1,0 +1,17 @@
+{
+    "id": "dbRef.key",
+   "createdAt": 123,
+     "createdBy": "currentUser?.uid",
+     "modifiedby": null,
+     "members": ["currentUser?.uid"],
+     "name": "elred-testing-group",
+     "recentMessage": {
+       "text": "this is latest message",
+       "readBy": {
+         "sentAt": 123,
+         "sentBy": "currentUser?.uid"
+       }
+     },
+     "type": "group",
+     "typingUsers": ["currentUser?.uid"]
+}

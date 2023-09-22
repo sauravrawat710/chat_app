@@ -1,0 +1,22 @@
+{
+  "conversationId": [
+    {
+      "id": "uuid",
+      "text": "this is first message",
+      "sentAt": 294294820,
+      "sentBy": "currentUser?.uid"
+    },
+    {
+      "id": "uuid",
+      "text": "this is second message",
+      "sentAt": 294294820,
+      "sentBy": "currentUser?.uid"
+    },
+    {
+      "id": "uuid",
+      "text": "this is third message",
+      "sentAt": 294294820,
+      "sentBy": "currentUser?.uid"
+    }
+  ]
+}

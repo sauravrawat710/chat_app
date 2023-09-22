@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/group_chat_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +16,16 @@ class _SelectGroupScreenState extends State<SelectGroupScreen> {
   @override
   void didChangeDependencies() {
     final chatvm = context.read<ChatViewModel>();
-    chatvm.setupChatClient();
-    chatvm.setupListeners();
-    chatvm.fetchGroupsName();
+    // chatvm.setupChatClient();
+    // chatvm.setupListeners();
+    // chatvm.fetchGroupsName();
+
+    //firebase implementation...
+
+    chatvm.checkIfUserLoggedIn();
+
+    log('didChangeDependencies');
+
     super.didChangeDependencies();
   }
 
@@ -44,72 +53,83 @@ class _SelectGroupScreenState extends State<SelectGroupScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 189, 216, 235),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Consumer<ChatViewModel>(
-                builder: (context, value, child) => DropdownButton<String>(
-                  value: value.selectedGroupName,
-                  onChanged: (newValue) {
-                    if (newValue != null) {
-                      value.onGroupDropwdownChange(newValue);
-                    }
-                  },
-                  items: value.groups.map((group) {
-                    return DropdownMenuItem<String>(
-                      value: group.name,
-                      child: Text(
-                        group.name ?? '',
-                        style: const TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.black,
+      body: Consumer<ChatViewModel>(
+        builder: (context, value, child) => Center(
+          child: value.isJoined
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 189, 216, 235),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Consumer<ChatViewModel>(
+                        builder: (context, value, child) =>
+                            DropdownButton<String>(
+                          value: value.selectedConversationName,
+                          onChanged: (newValue) {
+                            if (newValue != null) {
+                              value.onConversationDropwdownChange(newValue);
+                            }
+                          },
+                          items: value.conversationsList.map((conversations) {
+                            return DropdownMenuItem<String>(
+                              value: conversations.name,
+                              child: Text(
+                                conversations.name,
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(
-                height: 20.0), // Add spacing between dropdown and button
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const GroupChatScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 80, 99, 111),
-                elevation: 4.0, // Add button elevation
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: Text(
-                  'Enter Group Chat',
+                    ),
+                    const SizedBox(
+                        height:
+                            20.0), // Add spacing between dropdown and button
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const GroupChatScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 80, 99, 111),
+                        elevation: 4.0, // Add button elevation
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          'Enter Group Chat',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : const Text(
+                  'Please login to continue',
                   style: TextStyle(
-                    fontSize: 14.0,
                     color: Colors.white,
                   ),
                 ),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
   Future<dynamic> _showLoginDialog(BuildContext context, ChatViewModel value) {
-    final userNameController = TextEditingController();
+    final emailController = TextEditingController();
     final passwordController = TextEditingController();
     bool isLoading = false;
 
@@ -126,7 +146,7 @@ class _SelectGroupScreenState extends State<SelectGroupScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Login with Agora',
+                  'Login with Firebase',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 24,
@@ -135,9 +155,9 @@ class _SelectGroupScreenState extends State<SelectGroupScreen> {
                 ),
                 const SizedBox(height: 10),
                 TextField(
-                  controller: userNameController,
+                  controller: emailController,
                   decoration: InputDecoration(
-                    hintText: 'User ID',
+                    hintText: 'Email',
                     hintStyle: const TextStyle(color: Colors.white),
                     prefixIcon: const Icon(
                       Icons.person,
@@ -185,7 +205,7 @@ class _SelectGroupScreenState extends State<SelectGroupScreen> {
                             });
                             value
                                 .loginOrLogout(
-                                  userId: userNameController.text,
+                                  email: emailController.text,
                                   password: passwordController.text,
                                 )
                                 .then((value) => setState(() {
