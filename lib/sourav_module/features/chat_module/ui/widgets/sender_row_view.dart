@@ -167,10 +167,8 @@ class _SenderRowViewState extends State<SenderRowView> {
           child: const Text('Edit'),
         ),
         PopupMenuItem(
-          onTap: () async {
-            await context
-                .read<ChatViewModel>()
-                .deleteMessage(widget.messageData.id);
+          onTap: () {
+            context.read<ChatViewModel>().deleteMessage(widget.messageData.id);
           },
           child: const Text('Delete'),
         ),

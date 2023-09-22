@@ -126,12 +126,13 @@ class ChatViewModel extends ChangeNotifier {
 
   void fetchConversationByConversationId() async {
     _dbService
-        .streamConversationsByConversationId('-NeabC6k0rHJ_dGwZuuV')
+        .streamConversationsByConversationId(getSelectedConversation.id)
         .listen((conv) {
-      if (conv.typingUsers.isNotEmpty &&
-          !(conv.typingUsers.length == 1 &&
-              conv.typingUsers.first == user!.uid)) {
-        shouldShowTypingIndicator = true;
+      if (conv.typingUsers.isNotEmpty) {
+        if (!(conv.typingUsers.length == 1 &&
+            conv.typingUsers.contains(user!.uid))) {
+          shouldShowTypingIndicator = true;
+        }
       } else {
         shouldShowTypingIndicator = false;
       }
@@ -161,13 +162,12 @@ class ChatViewModel extends ChangeNotifier {
         conversationId: getSelectedConversation.id, currentUserUid: user!.uid);
 
     groupMembers.clear();
-
-    groupMembers = listOfMembers;
     _suggestions.clear();
-    for (DomainUser user in groupMembers) {
-      // if (user.id != this.user!.uid) {
-      _suggestions.add(user.displayName);
-      // }
+    for (DomainUser user in listOfMembers) {
+      if (user.id != this.user!.uid) {
+        groupMembers.add(user);
+        _suggestions.add(user.displayName);
+      }
     }
   }
 
@@ -240,6 +240,12 @@ class ChatViewModel extends ChangeNotifier {
           text: messageBoxController.text,
           type: type,
         );
+        messageBoxController.clear();
+        scrollController.animateTo(
+          0.0,
+          duration: const Duration(seconds: 2),
+          curve: Curves.fastOutSlowIn,
+        );
         break;
       case MessageType.IMAGE:
         await _dbService.postNewMessage(
@@ -269,7 +275,6 @@ class ChatViewModel extends ChangeNotifier {
         );
         break;
     }
-    messageBoxController.clear();
   }
 
   void editMessage(Message updatedMsg) async {

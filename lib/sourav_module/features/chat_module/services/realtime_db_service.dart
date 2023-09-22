@@ -136,7 +136,7 @@ class RealtimeDBService {
 
       final listOfMembersId = List<String>.from(result.value as Iterable);
 
-      return getUsersFromUserIds(listOfMembersId, currentUserUid);
+      return getUsersFromUserIds(listOfMembersId);
     } on FirebaseException catch (e) {
       log(e.message.toString());
       rethrow;
@@ -147,15 +147,13 @@ class RealtimeDBService {
   }
 
   Future<List<DomainUser>> getUsersFromUserIds(
-      List<String> listOfUserId, String currentUserUid) async {
+      List<String> listOfUserId) async {
     final List<DomainUser> usersList = [];
     for (String userId in listOfUserId) {
-      if (userId != currentUserUid) {
-        final result = await usersRef.child(userId).get();
-        final mapOfData = Map<String, dynamic>.from(result.value as Map);
-        final domainUser = DomainUser.fromJson(mapOfData);
-        usersList.add(domainUser);
-      }
+      final result = await usersRef.child(userId).get();
+      final mapOfData = Map<String, dynamic>.from(result.value as Map);
+      final domainUser = DomainUser.fromJson(mapOfData);
+      usersList.add(domainUser);
     }
     return usersList;
   }

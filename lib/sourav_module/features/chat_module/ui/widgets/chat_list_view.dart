@@ -24,44 +24,52 @@ class _ChatListViewState extends State<ChatListView> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ChatViewModel>(
-      builder: (context, value, child) => FirebaseDatabaseListView(
+      builder: (context, value, child) => FirebaseDatabaseQueryBuilder(
         query: RealtimeDBService()
             .db
             .ref('messages/${value.getSelectedConversation.id}'),
-        pageSize: 20,
-        itemBuilder: (context, doc) {
-          Message? messages;
-          messages = _parseMessages(doc, value, messages);
-          if (messages == null) {
-            return const SizedBox.shrink();
-          }
-          return messages.isSender
-              ? SenderRowView(messageData: messages)
-              : ReceiverRowView(messageData: messages);
+        builder: (context, snapshot, child) {
+          List<Message> messagesList = _parseMessages(snapshot.docs, value);
+
+          return ListView.builder(
+            controller: widget.scrollController,
+            reverse: true,
+            itemCount: messagesList.length,
+            itemBuilder: (context, index) {
+              if (snapshot.hasMore && index + 1 == snapshot.docs.length) {
+                snapshot.fetchMore();
+              }
+
+              return messagesList[index].isSender
+                  ? SenderRowView(messageData: messagesList[index])
+                  : ReceiverRowView(messageData: messagesList[index]);
+            },
+          );
         },
       ),
     );
   }
 
-  Message? _parseMessages(
-    DataSnapshot doc,
-    ChatViewModel value,
-    Message? messages,
-  ) {
-    if (doc.value != null) {
-      final mapOfData = Map<String, dynamic>.from(doc.value as Map);
-      Message message = Message.fromJson(mapOfData);
+  List<Message> _parseMessages(List<DataSnapshot> docs, ChatViewModel value) {
+    List<Message> messagesList = [];
+    if (docs.isNotEmpty) {
+      for (DataSnapshot doc in docs) {
+        final mapOfData = Map<String, dynamic>.from(doc.value as Map);
+        Message parsedMessage = Message.fromJson(mapOfData);
 
-      final isSender = message.sentBy == value.user!.uid;
+        final isSender = parsedMessage.sentBy == value.user!.uid;
 
-      message = message.copyWith(isSender: isSender);
+        parsedMessage = parsedMessage.copyWith(isSender: isSender);
 
-      if (!message.seenBy.contains(value.user!.uid)) {
-        value.markMessageAsRead(message);
+        if (!isSender && !parsedMessage.seenBy.contains(value.user!.uid)) {
+          value.markMessageAsRead(parsedMessage);
+        }
+
+        messagesList.add(parsedMessage);
       }
-
-      messages = message;
     }
-    return messages;
+    messagesList.sort((a, b) => DateTime.fromMillisecondsSinceEpoch(b.sentAt)
+        .compareTo(DateTime.fromMillisecondsSinceEpoch(a.sentAt)));
+    return messagesList;
   }
 }

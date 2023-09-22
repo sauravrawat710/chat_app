@@ -33,20 +33,16 @@ class ReceiverRowView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(
-                        left: 5.0, right: 8.0, top: 4.0, bottom: 2.0),
-                    padding: const EdgeInsets.only(
-                        left: 5.0, right: 5.0, top: 4.0, bottom: 9.0),
-                    decoration: const BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        color: Color(0XFF5A5A5A),
-                        borderRadius: BorderRadius.all(Radius.circular(10.0))),
-                    child: CommonMessageWidget(messages: messageData),
-                  ),
-                ],
+              Container(
+                margin: const EdgeInsets.only(
+                    left: 5.0, right: 8.0, top: 4.0, bottom: 2.0),
+                padding: const EdgeInsets.only(
+                    left: 5.0, right: 5.0, top: 4.0, bottom: 9.0),
+                decoration: const BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: Color(0XFF5A5A5A),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                child: CommonMessageWidget(messages: messageData),
               ),
               Container(
                 margin: const EdgeInsets.only(left: 10.0, bottom: 8.0),

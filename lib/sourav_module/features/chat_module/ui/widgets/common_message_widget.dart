@@ -1,4 +1,8 @@
+import 'dart:developer';
+
+import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,12 +21,17 @@ class CommonMessageWidget extends StatefulWidget {
 class _CommonMessageWidgetState extends State<CommonMessageWidget> {
   final String regexPattern = r"@\w+";
   late List<Match> matches = [];
+  DomainUser? senderUserInfo;
 
   @override
-  void initState() {
-    matches = [];
-    matches = RegExp(regexPattern).allMatches(widget.messages.text).toList();
-    super.initState();
+  void didChangeDependencies() {
+    RealtimeDBService().getUsersFromUserIds([widget.messages.sentBy]).then(
+      (value) {
+        senderUserInfo = value.first;
+        setState(() {});
+      },
+    );
+    super.didChangeDependencies();
   }
 
   @override
@@ -42,46 +51,29 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
   }
 
   Widget _buildTextWidget() {
-    // return Column(
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   children: [
-    //     if (!widget.messages.isSender)
-    //       Text(
-    //         '~ ${widget.messages.sentBy}',
-    //         style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-    //       ),
-    //     RichText(
-    //       text: TextSpan(
-    //         children: [
-    //           for (var match in matches)
-    //             TextSpan(
-    //               text: "${match.group(0)} ", // The mentioned username.
-    //               style: const TextStyle(
-    //                 color: Colors.blue, // You can choose a different color.
-    //                 fontWeight: FontWeight.bold,
-    //               ),
-    //             ),
-    //           TextSpan(
-    //             text: widget.messages.text.replaceAllMapped(
-    //                 RegExp(regexPattern), (match) => ''), // Remove mentions.
-    //             style: const TextStyle(color: Colors.white),
-    //           ),
-    //         ],
-    //       ),
-    //     ),
-    //   ],
-    // );
-
     final text = widget.messages.text;
 
+    // Ensure that matches are updated when the widget is rebuilt.
+    final matches = RegExp(regexPattern).allMatches(text);
+
     if (matches.isEmpty) {
-      return Text(
-        text,
-        style: const TextStyle(color: Colors.white),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!widget.messages.isSender)
+            Text(
+              '~ ${senderUserInfo?.displayName}',
+              style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
+            ),
+          Text(
+            text,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
       );
     }
 
-    final textWidgets = <Widget>[];
+    final textWidgets = <Text>[];
     int currentPosition = 0;
 
     for (final match in matches) {
@@ -97,7 +89,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       textWidgets.add(Text(
         mentionText,
         style: const TextStyle(
-          color: Colors.blue, // You can choose a different color.
+          color: Colors.blue,
           fontWeight: FontWeight.bold,
         ),
       ));
@@ -117,7 +109,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       children: [
         if (!widget.messages.isSender)
           Text(
-            '~ ${widget.messages.sentBy}',
+            '~ ${senderUserInfo?.displayName}',
             style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
           ),
         Row(mainAxisSize: MainAxisSize.min, children: textWidgets),
@@ -131,7 +123,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       children: [
         if (!widget.messages.isSender) ...[
           Text(
-            '~ ${widget.messages.sentBy}',
+            '~ ${senderUserInfo?.displayName}',
             style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
           ),
           const SizedBox(height: 5),
@@ -155,7 +147,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       children: [
         if (!widget.messages.isSender)
           Text(
-            '~ ${widget.messages.sentBy}',
+            '~ ${senderUserInfo?.displayName}',
             style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
           ),
         Row(
@@ -200,7 +192,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       children: [
         if (!widget.messages.isSender)
           Text(
-            '~ ${widget.messages.sentBy}',
+            '~ ${senderUserInfo?.displayName}',
             style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
           ),
         Column(
