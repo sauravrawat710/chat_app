@@ -1,7 +1,5 @@
-import 'dart:developer';
-
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/video_call_screen.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/bottom_typing_text_widget.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/chat_list_view.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/typing_indicator.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
@@ -22,26 +20,25 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   late final TextEditingController textEditingController;
   late String senderMessage, receiverMessage;
   late final ScrollController scrollController;
-  bool shouldEnable = false;
 
   @override
   void initState() {
     chatvm = context.read<ChatViewModel>();
     textEditingController = TextEditingController();
     textEditingController.addListener(chatvm.detectUserMention);
-    chatvm.fetchConversationByConversationId();
-
     scrollController = ScrollController();
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
     chatvm.setupControllers(
       textEditingController: textEditingController,
       scrollController: scrollController,
     );
     chatvm.fetchGroupConversationMembers();
+    chatvm.fetchConversationByConversationId();
+
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
     super.didChangeDependencies();
   }
 
@@ -57,173 +54,113 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF36454F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36454F),
+        backgroundColor: const Color(0xFF1F2C33),
         leadingWidth: 50.0,
         titleSpacing: -8.0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: CircleAvatar(
-            backgroundColor: const Color(0xFF90C953),
+            backgroundColor: Colors.blueGrey,
             child: Consumer<ChatViewModel>(
-              builder: (context, value, child) => Text(
-                value.getSelectedConversation.name.characters.first,
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
+                builder: (context, value, child) =>
+                    Icon(Icons.group, color: Colors.grey[200])),
           ),
         ),
         title: Consumer<ChatViewModel>(
           builder: (context, value, child) => ListTile(
-            title: Text(value.selectedConversationName,
-                style: const TextStyle(color: Colors.white)),
+            title: Text(
+              value.selectedConversationName,
+              style: const TextStyle(color: Colors.white),
+            ),
+            subtitle: Row(
+              children: value.groupMembers.map((e) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: Text(e.displayName,
+                      style: const TextStyle(color: Colors.white)),
+                );
+              }).toList(),
+            ),
           ),
         ),
-        actions: const [
-          Icon(Icons.videocam),
-          Padding(
+        actions: [
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const VideoCallScreen()),
+            ),
+            child: const Icon(Icons.videocam),
+          ),
+          const Padding(
             padding: EdgeInsets.only(right: 20.0, left: 20.0),
             child: Icon(Icons.call),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(child: ChatListView(scrollController: scrollController)),
-          Consumer<ChatViewModel>(
-            builder: (context, value, child) {
-              if (value.filteredSuggestions.isNotEmpty) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: ListView.builder(
-                      itemCount: value.filteredSuggestions.length,
-                      itemBuilder: (ontext, index) {
-                        return ListTile(
-                          tileColor: const Color.fromARGB(255, 80, 99, 111),
-                          title: Text(
-                            value.filteredSuggestions[index],
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          onTap: () => chatvm.onUserMentionTap(index: index),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
-          ),
-          Selector<ChatViewModel, bool>(
-            selector: (context, value) => value.shouldShowTypingIndicator,
-            builder: (context, value, child) => TypingIndicator(
-              showIndicator: value,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            opacity: .1,
+            colorFilter: ColorFilter.mode(
+              Color(0XFF0C151B),
+              BlendMode.difference,
             ),
+            image: NetworkImage(
+                "https://camo.githubusercontent.com/854a93c27d64274c4f8f5a0b6ec36ee1d053cfcd934eac6c63bed9eaef9764bd/68747470733a2f2f7765622e77686174736170702e636f6d2f696d672f62672d636861742d74696c652d6461726b5f61346265353132653731393562366237333364393131306234303866303735642e706e67"),
+            fit: BoxFit.cover,
           ),
-          Container(
-            margin: const EdgeInsets.all(8.0),
-            decoration: const BoxDecoration(
-                shape: BoxShape.rectangle,
-                color: Color.fromARGB(255, 80, 99, 111),
-                borderRadius: BorderRadius.all(Radius.circular(15.0))),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => _showMultiMediaPopupMenu(context),
-                  child: Container(
-                    margin: const EdgeInsets.only(
-                        left: 8.0, right: 8.0, bottom: 12.0),
-                    child: Transform.rotate(
-                        angle: 45,
-                        child: const Icon(
-                          Icons.attach_file_sharp,
-                          color: Colors.white,
-                        )),
-                  ),
-                ),
-                Expanded(
-                  child: Consumer<ChatViewModel>(
-                    builder: (context, viewModel, child) => TextFormField(
-                      controller: textEditingController,
-                      cursorColor: Colors.white,
-                      keyboardType: TextInputType.multiline,
-                      minLines: 1,
-                      maxLines: 6,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        hintText: 'Type your message...',
-                        hintStyle: TextStyle(color: Colors.white24),
-                        border: InputBorder.none,
-                      ),
-                      onChanged: (value) {
-                        _shouldEnableSendButton();
-                        if (!viewModel.shouldShowTypingIndicator) {
-                          viewModel.showTypingIndicator(true);
-                          Future.delayed(const Duration(seconds: 4))
-                              .whenComplete(() {
-                            viewModel.showTypingIndicator();
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(
-                      left: 8.0, right: 8.0, bottom: 11.0),
-                  child: Transform.rotate(
-                    angle: -3.14 / 5,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 5.0),
-                      child: GestureDetector(
-                        onTap: shouldEnable
-                            ? () => chatvm.sendMessage(MessageType.TEXT)
-                            : null,
-                        child: Icon(
-                          Icons.send,
-                          color: shouldEnable ? Colors.white : Colors.white30,
+        ),
+        child: Column(
+          children: [
+            Expanded(child: ChatListView(scrollController: scrollController)),
+            Consumer<ChatViewModel>(
+              builder: (context, value, child) {
+                if (value.filteredSuggestions.isNotEmpty) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width - 20,
+                    height: value.filteredSuggestions.length > 5
+                        ? MediaQuery.of(context).size.height / 2.5
+                        : null,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
+                    child: ListView(
+                      // mainAxisSize: MainAxisSize.min,
+                      shrinkWrap: true,
+                      children: value.filteredSuggestions.map((name) {
+                        return ListTile(
+                          title: Text(
+                            name,
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                          onTap: () => chatvm.onUserMentionTap(name: name),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
             ),
-          ),
-        ],
+            Selector<ChatViewModel, bool>(
+              selector: (context, value) => value.shouldShowTypingIndicator,
+              builder: (context, value, child) => TypingIndicator(
+                showIndicator: value,
+              ),
+            ),
+            BottomTypingTextWidget(textEditingController: textEditingController)
+          ],
+        ),
       ),
-    );
-  }
-
-  void _shouldEnableSendButton() {
-    if (textEditingController.text.isNotEmpty) {
-      shouldEnable = true;
-    } else {
-      shouldEnable = false;
-    }
-    setState(() {});
-  }
-
-  Future<dynamic> _showMultiMediaPopupMenu(BuildContext context) {
-    return showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(0, 670, 100, 0),
-      items: [
-        PopupMenuItem(
-          onTap: chatvm.pickImageAndSend,
-          child: const Text('Images'),
-        ),
-        PopupMenuItem(
-          onTap: chatvm.pickFileAndSent,
-          child: const Text('Files'),
-        ),
-        PopupMenuItem(
-          onTap: chatvm.pickContactAndSent,
-          child: const Text('Contacts'),
-        ),
-      ],
     );
   }
 }

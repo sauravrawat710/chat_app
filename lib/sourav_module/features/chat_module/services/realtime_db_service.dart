@@ -10,15 +10,15 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 
+// ignore: constant_identifier_names
+enum MessageStatus { SENDING, SEND, ERROR }
+
 class RealtimeDBService {
   final db = FirebaseDatabase.instance;
   final storage = FirebaseStorage.instance;
   late DatabaseReference conversationRef;
   late DatabaseReference messagesRef;
   late DatabaseReference usersRef;
-  // int limitTo = 5;
-  // int? startAfter;
-  // int? endAt;
 
   RealtimeDBService() {
     conversationRef = db.ref('conversations');
@@ -68,65 +68,6 @@ class RealtimeDBService {
     }
   }
 
-  // Stream<List<Message>> fetchMessagesByConversationId(
-  //     String conversationId, bool paginate) async* {
-  //   try {
-  //     // print('limitTo ==> $limitTo');
-  //     // print('startAfter ==> $startAfter');
-  //     // print('endAt ==> $endAt');
-  //     late final Query msgRef;
-  //     // if (!paginate) {
-  //     msgRef = db.ref('messages/$conversationId').limitToLast(10);
-  //     // startAfter = limitTo;
-  //     // endAt = limitTo + limitTo;
-  //     // } else {
-  //     //   msgRef = db
-  //     //       .ref('messages/$conversationId')
-  //     //       .limitToLast(limitTo)
-  //     //       .startAfter(startAfter)
-  //     //       .endAt(endAt);
-  //     //   startAfter = endAt!;
-  //     //   endAt = startAfter! + limitTo;
-  //     // }
-  //     final streamOfData = msgRef.onValue;
-
-  //     yield* streamOfData.asyncMap((event) {
-  //       if (event.snapshot.value != null) {
-  //         final mapOfData = Map.from(event.snapshot.value as Map);
-  //         final messageList = mapOfData.entries
-  //             .map((e) => Message.fromJson({
-  //                   "id": e.key,
-  //                   "sentAt": e.value["sentAt"],
-  //                   "sentBy": e.value["sentBy"],
-  //                   "text": e.value["text"],
-  //                   "type": e.value["type"],
-  //                   "imageUrl": e.value["imageUrl"],
-  //                   "fileUrl": e.value["fileUrl"],
-  //                   "contactInfo": e.value["contactInfo"],
-  //                 }))
-  //             .toList();
-
-  //         final newMessageList = messageList.map((e) {
-  //           if (e.sentBy == currentUser?.uid) {
-  //             return e.copyWith(isSender: true);
-  //           }
-  //           return e;
-  //         }).toList();
-
-  //         return newMessageList;
-  //       } else {
-  //         return [];
-  //       }
-  //     });
-  //   } on FirebaseException catch (e) {
-  //     log(e.message.toString());
-  //     rethrow;
-  //   } catch (e) {
-  //     log('errrrrr =>$e');
-  //     rethrow;
-  //   }
-  // }
-
   Future<List<DomainUser>> getGroupsMembers(
       {required String conversationId, required String currentUserUid}) async {
     try {
@@ -158,7 +99,7 @@ class RealtimeDBService {
     return usersList;
   }
 
-  Future<bool> postNewMessage({
+  Stream<MessageStatus> postNewMessage({
     required String conversationId,
     required String text,
     required MessageType type,
@@ -166,7 +107,7 @@ class RealtimeDBService {
     File? imageFile,
     File? file,
     PhoneContact? contact,
-  }) async {
+  }) async* {
     try {
       final msgRef = db.ref('messages/$conversationId');
 
@@ -189,38 +130,58 @@ class RealtimeDBService {
         final storageUploadTask =
             ref.child(conversationRef.key!).putFile(imageFile);
 
-        storageUploadTask.snapshotEvents.listen((event) async {
-          if (event.state == TaskState.success) {
-            final url = await event.ref.getDownloadURL();
-            newMessage = newMessage.copyWith(imageUrl: url);
-            await conversationRef.update(newMessage.toJson());
+        yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
+          switch (event.state) {
+            case TaskState.error:
+              return MessageStatus.ERROR;
+            case TaskState.paused:
+              return MessageStatus.ERROR;
+            case TaskState.running:
+              return MessageStatus.SENDING;
+            case TaskState.success:
+              final url = await event.ref.getDownloadURL();
+              newMessage = newMessage.copyWith(imageUrl: url);
+              await conversationRef.update(newMessage.toJson());
+              return MessageStatus.SEND;
+            case TaskState.canceled:
+              return MessageStatus.ERROR;
           }
         });
-        return true;
       } else if (type == MessageType.FILE && file != null) {
         final ref = storage.ref().child("files/");
 
         final storageUploadTask = ref.child(conversationRef.key!).putFile(file);
 
-        storageUploadTask.snapshotEvents.listen((event) async {
-          if (event.state == TaskState.success) {
-            final url = await event.ref.getDownloadURL();
-            newMessage = newMessage.copyWith(fileUrl: url);
-            await conversationRef.update(newMessage.toJson());
+        yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
+          switch (event.state) {
+            case TaskState.error:
+              return MessageStatus.ERROR;
+            case TaskState.paused:
+              return MessageStatus.ERROR;
+            case TaskState.running:
+              return MessageStatus.SENDING;
+            case TaskState.success:
+              final url = await event.ref.getDownloadURL();
+              newMessage = newMessage.copyWith(fileUrl: url);
+              await conversationRef.update(newMessage.toJson());
+              return MessageStatus.SEND;
+            case TaskState.canceled:
+              return MessageStatus.ERROR;
           }
         });
-        return true;
       } else if (type == MessageType.CONTACT && contact != null) {
+        yield MessageStatus.SENDING;
         newMessage = newMessage.copyWith(contactInfo: contact);
         await conversationRef.update(newMessage.toJson());
-        return true;
+        yield MessageStatus.SEND;
       } else {
+        yield MessageStatus.SENDING;
         await conversationRef.update(newMessage.toJson());
-        return true;
+        yield MessageStatus.SEND;
       }
     } on FirebaseException catch (e) {
       log(e.message.toString());
-      return false;
+      yield MessageStatus.ERROR;
     } catch (e) {
       log('err => $e');
       rethrow;
@@ -293,14 +254,4 @@ class RealtimeDBService {
       rethrow;
     }
   }
-
-  // void addUser() async {
-  //   await usersRef.child('MWj7occq8XRfkNTjT2UlAtU4O8R2').set({
-  //     "id": "MWj7occq8XRfkNTjT2UlAtU4O8R2",
-  //     "displayName": "Sourav",
-  //     "email": "sourav@elred.com",
-  //     "photoUrl": "",
-  //     "conversations": ["-NeabC6k0rHJ_dGwZuuV"]
-  //   });
-  // }
 }

@@ -5,9 +5,9 @@ import 'dart:io';
 import 'package:agora_chat_module/main.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/conversations.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/message_data_model.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 // import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +16,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ChatViewModel extends ChangeNotifier {
   ChatViewModel() {
@@ -34,7 +35,7 @@ class ChatViewModel extends ChangeNotifier {
 
   late ScrollController scrollController;
   late TextEditingController messageBoxController;
-  late StreamController<Conversations> streamController;
+  MessageStatus? messageStatus;
 
   XFile? imageFile;
   FilePickerResult? file;
@@ -131,6 +132,12 @@ class ChatViewModel extends ChangeNotifier {
       if (conv.typingUsers.isNotEmpty) {
         if (!(conv.typingUsers.length == 1 &&
             conv.typingUsers.contains(user!.uid))) {
+          conversationsList = conversationsList.map((e) {
+            if (e.id == conv.id) {
+              return conv;
+            }
+            return e;
+          }).toList();
           shouldShowTypingIndicator = true;
         }
       } else {
@@ -139,23 +146,6 @@ class ChatViewModel extends ChangeNotifier {
       notifyListeners();
     });
   }
-
-  // void fetchAllMessagesInSelectedConversation([bool paginate = false]) async {
-  //   try {
-  //     _dbService
-  //         .fetchMessagesByConversationId(getSelectedConversation.id, paginate)
-  //         .listen((listOfMessages) {
-  //       messagesList.addAll(listOfMessages);
-  //       log('length ==> ${messagesList.length}');
-  //       messagesList.sort((a, b) =>
-  //           DateTime.fromMillisecondsSinceEpoch(b.sentAt)
-  //               .compareTo(DateTime.fromMillisecondsSinceEpoch(a.sentAt)));
-  //       notifyListeners();
-  //     });
-  //   } catch (e) {
-  //     log(e.toString());
-  //   }
-  // }
 
   void fetchGroupConversationMembers() async {
     final listOfMembers = await _dbService.getGroupsMembers(
@@ -169,14 +159,22 @@ class ChatViewModel extends ChangeNotifier {
         _suggestions.add(user.displayName);
       }
     }
+    notifyListeners();
   }
 
   void detectUserMention() {
     final text = messageBoxController.text;
+    final index =
+        text.lastIndexOf('@', messageBoxController.selection.baseOffset);
 
-    final index = text.lastIndexOf('@');
     if (index >= 0 && index < text.length - 1) {
-      final mentionedName = text.substring(index + 1).toLowerCase();
+      notifyListeners();
+      // Find the first space after the '@' character.
+      final endIndex = text.indexOf(' ', index);
+      final mentionedName = endIndex != -1
+          ? text.substring(index + 1, endIndex).toLowerCase()
+          : text.substring(index + 1).toLowerCase();
+
       if (mentionedName != mention) {
         setMention = mentionedName;
         setFilteredSuggestions = suggestions
@@ -190,22 +188,34 @@ class ChatViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onUserMentionTap({required int index}) {
-    final mention = filteredSuggestions[index];
+  void onUserMentionTap({required String name}) {
+    final mention = name;
     final text = messageBoxController.text;
-    final indexs = text.lastIndexOf('@');
-    messageBoxController.value = TextEditingValue(
-      text: text.substring(0, indexs + 1) + mention,
-      selection: TextSelection.collapsed(offset: text.length),
-    );
-    setFilteredSuggestions = [];
-    notifyListeners();
+    final selection = messageBoxController.selection;
+
+    // Find the last index of '@' before the cursor position.
+    final indexs = text.lastIndexOf('@', selection.baseOffset);
+
+    if (indexs >= 0) {
+      final newText = '${text.substring(0, indexs + 1)}$mention';
+      final newSelection = TextSelection(
+        baseOffset: indexs + mention.length + 1, // +1 for the '@' character.
+        extentOffset: indexs + mention.length + 1,
+      );
+
+      messageBoxController.value = TextEditingValue(
+        text: newText + text.substring(selection.baseOffset),
+        selection: newSelection,
+      );
+
+      setFilteredSuggestions = [];
+      notifyListeners();
+    }
   }
 
-  Future<void> pickImageAndSend() async {
+  Future<void> pickImageAndSend(ImageSource source) async {
     final imagePicker = ImagePicker();
-    final pickedImage =
-        await imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedImage = await imagePicker.pickImage(source: source);
 
     if (pickedImage != null) {
       imageFile = pickedImage;
@@ -229,50 +239,85 @@ class ChatViewModel extends ChangeNotifier {
     sendMessage(MessageType.CONTACT);
   }
 
-  void sendMessage(MessageType type) async {
+  void sendMessage([MessageType type = MessageType.TEXT]) async {
+    if (type == MessageType.TEXT && messageBoxController.text.isEmpty) {
+      return;
+    }
+
     final conversationId = getSelectedConversation.id;
 
     switch (type) {
       case MessageType.TEXT:
-        await _dbService.postNewMessage(
+        _dbService
+            .postNewMessage(
           user: user!,
           conversationId: conversationId,
           text: messageBoxController.text,
           type: type,
-        );
-        messageBoxController.clear();
-        scrollController.animateTo(
-          0.0,
-          duration: const Duration(seconds: 2),
-          curve: Curves.fastOutSlowIn,
-        );
+        )
+            .listen((event) {
+          if (messageStatus != event) {
+            messageStatus = event;
+            notifyListeners();
+          }
+          if (messageStatus == MessageStatus.SEND) {
+            messageBoxController.clear();
+            scrollController.animateTo(
+              0.0,
+              duration: const Duration(seconds: 2),
+              curve: Curves.fastOutSlowIn,
+            );
+          }
+        });
         break;
       case MessageType.IMAGE:
-        await _dbService.postNewMessage(
+        _dbService
+            .postNewMessage(
           user: user!,
           conversationId: conversationId,
           text: imageFile!.name,
           type: type,
           imageFile: File(imageFile!.path),
-        );
+        )
+            .listen((event) {
+          log('event ==> $event');
+          if (messageStatus != event) {
+            messageStatus = event;
+            notifyListeners();
+          }
+        });
         break;
       case MessageType.FILE:
-        await _dbService.postNewMessage(
+        _dbService
+            .postNewMessage(
           user: user!,
           conversationId: conversationId,
           text: file!.names.first!,
           type: type,
           file: File(file!.paths.first!),
-        );
+        )
+            .listen((event) {
+          if (messageStatus != event) {
+            messageStatus = event;
+            notifyListeners();
+          }
+        });
         break;
       case MessageType.CONTACT:
-        await _dbService.postNewMessage(
+        _dbService
+            .postNewMessage(
           user: user!,
           conversationId: conversationId,
           text: 'contacts',
           type: type,
           contact: contact,
-        );
+        )
+            .listen((event) {
+          if (messageStatus != event) {
+            messageStatus = event;
+            notifyListeners();
+          }
+        });
         break;
     }
   }
@@ -328,18 +373,10 @@ class ChatViewModel extends ChangeNotifier {
 
   void downloadAttachments(Message message) async {
     try {
-      downloadFile(message.fileUrl!, message.text);
-    } catch (e) {
-      showLog(e.toString());
-    }
-  }
-
-  Future<void> downloadFile(String url, String fileName) async {
-    try {
       final taskId = await FlutterDownloader.enqueue(
-        url: url,
+        url: message.fileUrl!,
         savedDir: (await getExternalStorageDirectory())!.path,
-        fileName: fileName,
+        fileName: message.text,
         showNotification: true,
         openFileFromNotification: true,
         // saveInPublicStorage: true,
@@ -356,14 +393,77 @@ class ChatViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> scrollAnimation() async {
-    return await Future.delayed(
-      const Duration(milliseconds: 100),
-      () => scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.linear,
+  //agora audio/video
+  final String appId = '7accc1c4b800403aa3bb41ecc95512c9';
+  final String token =
+      '007eJxTYHgYKr3311lxG9Y18+Qrefjyf63TT6maLLnw4dMXrBZr2q0VGMwTk5OTDZNNkiwMDEwMjBMTjZOSTAxTk5MtTU0NjZItHfMEUxsCGRny6/lZGRkgEMQXZkjNKUpN0S1JLS7JzEvXTS/KLy1gYAAA+wYjrA==';
+  late final RtcEngine agoraEngine;
+  bool _isUserJoined = false;
+  List<int> _listOfRemoteUserJoined = [];
+
+  Future<void> setupVideoSDKEngine() async {
+    // retrieve or request camera and microphone permissions
+    await [Permission.microphone, Permission.camera].request();
+
+    //create an instance of the Agora engine
+    final agoraEngine = createAgoraRtcEngine();
+    await agoraEngine.initialize(RtcEngineContext(appId: appId));
+
+    await agoraEngine.enableVideo();
+
+    // Register the event handler
+    agoraEngine.registerEventHandler(
+      RtcEngineEventHandler(
+        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+          showLog("Local user uid:${connection.localUid} joined the channel");
+          // setState(() {
+          _isUserJoined = true;
+          notifyListeners();
+          // });
+        },
+        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+          showLog("Remote user uid:$remoteUid joined the channel");
+
+          _listOfRemoteUserJoined.add(remoteUid);
+          notifyListeners();
+        },
+        onUserOffline: (RtcConnection connection, int remoteUid,
+            UserOfflineReasonType reason) {
+          showLog("Remote user uid:$remoteUid left the channel");
+
+          _listOfRemoteUserJoined.remove(remoteUid);
+          notifyListeners();
+        },
       ),
     );
+  }
+
+  void join() async {
+    await agoraEngine.startPreview();
+
+    // Set channel options including the client role and channel profile
+    ChannelMediaOptions options = const ChannelMediaOptions(
+      clientRoleType: ClientRoleType.clientRoleBroadcaster,
+      channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+    );
+
+    await agoraEngine.joinChannel(
+      token: token,
+      channelId: getSelectedConversation.id,
+      options: options,
+      uid: 0,
+    );
+  }
+
+  void leave() {
+    _isUserJoined = false;
+    _listOfRemoteUserJoined.clear();
+    agoraEngine.leaveChannel();
+    notifyListeners();
+  }
+
+  void disposeAgora() async {
+    await agoraEngine.leaveChannel();
+    agoraEngine.release();
   }
 }

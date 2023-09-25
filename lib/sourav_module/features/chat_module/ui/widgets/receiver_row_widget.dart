@@ -1,8 +1,10 @@
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/common_message_widget.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart' as intl;
+import 'package:provider/provider.dart';
 
 class ReceiverRowView extends StatelessWidget {
   const ReceiverRowView({Key? key, required this.messageData})
@@ -22,8 +24,18 @@ class ReceiverRowView extends StatelessWidget {
             padding: const EdgeInsets.only(left: 10.0, top: 1.0, bottom: 9.0),
             child: CircleAvatar(
               backgroundColor: const Color(0xFF90C953),
-              child: Text(messageData.sentBy.characters.first,
-                  style: const TextStyle(color: Colors.black)),
+              child: Consumer<ChatViewModel>(
+                builder: (context, value, child) => Text(
+                  value.groupMembers
+                      .firstWhere((element) => element.id == messageData.sentBy)
+                      .displayName
+                      .characters
+                      .first,
+                  style: const TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -40,7 +52,7 @@ class ReceiverRowView extends StatelessWidget {
                     left: 5.0, right: 5.0, top: 4.0, bottom: 9.0),
                 decoration: const BoxDecoration(
                     shape: BoxShape.rectangle,
-                    color: Color(0XFF5A5A5A),
+                    color: Color(0XFF1F2C33),
                     borderRadius: BorderRadius.all(Radius.circular(10.0))),
                 child: CommonMessageWidget(messages: messageData),
               ),

@@ -29,16 +29,30 @@ class _ChatListViewState extends State<ChatListView> {
             .db
             .ref('messages/${value.getSelectedConversation.id}'),
         builder: (context, snapshot, child) {
+          if (snapshot.isFetching) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Text('error ${snapshot.error}');
+          }
+
           List<Message> messagesList = _parseMessages(snapshot.docs, value);
 
           return ListView.builder(
             controller: widget.scrollController,
             reverse: true,
-            itemCount: messagesList.length,
+            itemCount: snapshot.docs.length,
             itemBuilder: (context, index) {
               if (snapshot.hasMore && index + 1 == snapshot.docs.length) {
                 snapshot.fetchMore();
               }
+              widget.scrollController.addListener(() {
+                if (widget.scrollController.position.pixels ==
+                    widget.scrollController.position.maxScrollExtent) {
+                  snapshot.fetchMore();
+                  log('load more()');
+                }
+              });
 
               return messagesList[index].isSender
                   ? SenderRowView(messageData: messagesList[index])

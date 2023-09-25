@@ -11,7 +11,6 @@ import 'package:url_launcher/url_launcher.dart';
 class CommonMessageWidget extends StatefulWidget {
   const CommonMessageWidget({super.key, required this.messages});
 
-  // final MessageData messageData;
   final Message messages;
 
   @override
@@ -21,16 +20,26 @@ class CommonMessageWidget extends StatefulWidget {
 class _CommonMessageWidgetState extends State<CommonMessageWidget> {
   final String regexPattern = r"@\w+";
   late List<Match> matches = [];
+  late final ChatViewModel chatViewModel;
   DomainUser? senderUserInfo;
 
   @override
+  void initState() {
+    chatViewModel = context.read<ChatViewModel>();
+    super.initState();
+  }
+
+  @override
   void didChangeDependencies() {
-    RealtimeDBService().getUsersFromUserIds([widget.messages.sentBy]).then(
-      (value) {
-        senderUserInfo = value.first;
-        setState(() {});
-      },
-    );
+    final member = context
+        .watch<ChatViewModel>()
+        .groupMembers
+        .where((element) => element.id == widget.messages.sentBy)
+        .toList();
+
+    if (member.isNotEmpty) {
+      senderUserInfo = member.first;
+    }
     super.didChangeDependencies();
   }
 
@@ -86,14 +95,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
 
       // Add the mention with a different style.
       final mentionText = text.substring(match.start, match.end);
-      textWidgets.add(Text(
-        mentionText,
-        style: const TextStyle(
-          color: Colors.blue,
-          fontWeight: FontWeight.bold,
-        ),
-      ));
-
+      _checkValidMention(text, match, textWidgets, mentionText);
       currentPosition = match.end;
     }
 
@@ -117,27 +119,54 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
     );
   }
 
-  Column _buildImageWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!widget.messages.isSender) ...[
-          Text(
-            '~ ${senderUserInfo?.displayName}',
-            style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-          ),
-          const SizedBox(height: 5),
-        ],
-        Image.network(widget.messages.imageUrl!),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            widget.messages.text,
-            style: const TextStyle(color: Colors.white),
-            textAlign: TextAlign.left,
-          ),
-        )
-      ],
+  void _checkValidMention(String text, RegExpMatch match,
+      List<Text> textWidgets, String mentionText) {
+    if (chatViewModel.groupMembers.any((element) =>
+        element.displayName.toLowerCase() ==
+        text.substring(match.start + 1, match.end).toLowerCase())) {
+      textWidgets.add(Text(
+        mentionText,
+        style: const TextStyle(
+          color: Colors.blue,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+    } else {
+      textWidgets.add(Text(
+        mentionText,
+        style: const TextStyle(color: Colors.white),
+      ));
+    }
+  }
+
+  Widget _buildImageWidget() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: SizedBox(
+        height: 190,
+        width: 230,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: widget.messages.isSender
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            if (!widget.messages.isSender) ...[
+              Text(
+                '~ ${senderUserInfo?.displayName}',
+                style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
+              ),
+              const SizedBox(height: 5),
+            ],
+            Expanded(
+              child: Image.network(
+                widget.messages.imageUrl!,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
