@@ -93,10 +93,32 @@ class RealtimeDBService {
     for (String userId in listOfUserId) {
       final result = await usersRef.child(userId).get();
       final mapOfData = Map<String, dynamic>.from(result.value as Map);
+      log('mapOfData in userId ==> $mapOfData');
       final domainUser = DomainUser.fromJson(mapOfData);
       usersList.add(domainUser);
     }
     return usersList;
+  }
+
+  Future<List<DomainUser>> getUsersFromAgoraIds(List<int> listOfAgoraId) async {
+    final List<DomainUser> usersList = [];
+    try {
+      for (int id in listOfAgoraId) {
+        final result = await usersRef.orderByChild('agoraId').equalTo(id).get();
+        final mapOfData = Map<String, dynamic>.from(result.value as Map);
+        log('mapOfData in agoraid ==> $mapOfData');
+        final domainUser = mapOfData.entries
+            .map((e) => DomainUser.fromJson(Map<String, dynamic>.from(e.value)))
+            .toList();
+        usersList.add(domainUser.first);
+        continue;
+      }
+      log('userList ==> $usersList');
+      return usersList;
+    } catch (e) {
+      log('error ==> $e');
+      rethrow;
+    }
   }
 
   Stream<MessageStatus> postNewMessage({

@@ -401,13 +401,13 @@ class ChatViewModel extends ChangeNotifier {
   //agora audio/video
   final String appId = '7accc1c4b800403aa3bb41ecc95512c9';
   final String token =
-      '007eJxTYLiQt/H883UVqY87j6Z38B/11243bdmtuZJvuc7JXZqTZporMJgnJicnGyabJFkYGJgYGCcmGiclmRimJidbmpoaGiVbLjopnNoQyMjwnzuZlZEBAkF8YYbUnKLUFN2S1OKSzLx03fSi/NICBgYA0VYmQQ==';
+      '007eJxTYOBRiD2/YWrf1vOck1ouHmOyl7Y8GH38bCWvnNoj4eN6pfMVGMwTk5OTDZNNkiwMDEwMjBMTjZOSTAxTk5MtTU0NjZItddeJpTYEMjJUtDCzMDJAIIgvzJCaU5SaoluSWlySmZeum16UX1rAwAAA1zAjXQ==';
   late AgoraClient client;
   late RtcEngine agoraEngine;
   bool _isUserJoined = false;
 
-  List<int> _listOfRemoteUserJoined = [];
-  List<int> get listOfRemoteUserJoined => _listOfRemoteUserJoined;
+  List<DomainUser> _listOfRemoteUserJoined = [];
+  List<DomainUser> get listOfRemoteUserJoined => _listOfRemoteUserJoined;
 
   bool _isMuted = false;
   bool get isMuted => _isMuted;
@@ -497,9 +497,9 @@ class ChatViewModel extends ChangeNotifier {
       agoraEngine = createAgoraRtcEngine();
       await agoraEngine.initialize(RtcEngineContext(appId: appId));
 
-      agoraEngine.registerAudioSpectrumObserver(AudioSpectrumObserver(
-        onLocalAudioSpectrum: (data) {},
-      ));
+      // agoraEngine.registerAudioSpectrumObserver(AudioSpectrumObserver(
+      //   onLocalAudioSpectrum: (data) {},
+      // ));
 
       // Register the event handler
       agoraEngine.registerEventHandler(
@@ -520,41 +520,53 @@ class ChatViewModel extends ChangeNotifier {
             );
 
             NotificationController.createNewNotification(content);
+            _listOfRemoteUserJoined.clear();
             notifyListeners();
           },
-          onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-            showLog("Remote user uid:$remoteUid joined the channel");
+          onUserJoined:
+              (RtcConnection connection, int remoteUid, int elapsed) async {
+            // for (DomainUser user in listOfRemoteUserJoined) {
+            // if (user.agoraId != remoteUid) {
+            final user = await _dbService.getUsersFromAgoraIds([remoteUid]);
+            print('user ==> ${user.first}');
 
-            if (!_listOfRemoteUserJoined.contains(remoteUid)) {
-              _listOfRemoteUserJoined.add(remoteUid);
-              notifyListeners();
-            }
+            _listOfRemoteUserJoined.add(user.first);
+            showLog("Remote user uid:$remoteUid joined the channel");
+            showLog("listOfRemoteUserJoined ${listOfRemoteUserJoined.length}");
+            notifyListeners();
+            // }
+            // }
           },
           onUserOffline: (RtcConnection connection, int remoteUid,
               UserOfflineReasonType reason) {
             showLog("Remote user uid:$remoteUid left the channel");
 
-            if (_listOfRemoteUserJoined.contains(remoteUid)) {
-              _listOfRemoteUserJoined.remove(remoteUid);
-              notifyListeners();
-            }
+            final userToRemove = listOfRemoteUserJoined
+                .firstWhere((element) => element.agoraId == remoteUid);
+
+            _listOfRemoteUserJoined.remove(userToRemove);
+            notifyListeners();
+
+            // if (_listOfRemoteUserJoined.contains(remoteUid)) {
+            //   _listOfRemoteUserJoined.remove(remoteUid);
+            //   notifyListeners();
+            // }
           },
-          onAudioVolumeIndication:
-              (connection, speakers, speakerNumber, totalVolume) {
-            // showLog("onAudioVolumeIndication() callback triggered!!");
-            log('speakers.length ==> ${speakers.length}');
-            speakers.forEach((element) {
-              log("speakeresss!!!!@@ ${element.uid}");
-            });
-            for (AudioVolumeInfo speaker in speakers) {
-              log('speaker ==> ${speaker.volume}');
-              if (speaker.uid == 0) {
-                speakerVolume = speakers.first.volume ?? 0;
-                notifyListeners();
-              }
-            }
-          },
-          onLocalAudioStateChanged: (connection, state, error) {},
+          // onAudioVolumeIndication:
+          //     (connection, speakers, speakerNumber, totalVolume) {
+          //   // showLog("onAudioVolumeIndication() callback triggered!!");
+          //   log('speakers.length ==> ${speakers.length}');
+          //   speakers.forEach((element) {
+          //     log("speakeresss!!!!@@ ${element.uid}");
+          //   });
+          //   for (AudioVolumeInfo speaker in speakers) {
+          //     log('speaker ==> ${speaker.volume}');
+          //     if (speaker.uid == 0) {
+          //       speakerVolume = speakers.first.volume ?? 0;
+          //       notifyListeners();
+          //     }
+          //   }
+          // },
         ),
       );
     } on AgoraRtcException catch (e) {
