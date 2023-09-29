@@ -1,4 +1,5 @@
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/video_call_screen.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/voice_call_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/bottom_typing_text_widget.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/chat_list_view.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/typing_indicator.dart';
@@ -91,9 +92,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
             child: const Icon(Icons.videocam),
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 20.0, left: 20.0),
-            child: Icon(Icons.call),
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0, left: 20.0),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const VoiceCallScreen()),
+              ),
+              child: const Icon(Icons.call),
+            ),
           ),
         ],
       ),

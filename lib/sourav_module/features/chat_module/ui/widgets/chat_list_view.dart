@@ -28,10 +28,8 @@ class _ChatListViewState extends State<ChatListView> {
         query: RealtimeDBService()
             .db
             .ref('messages/${value.getSelectedConversation.id}'),
+        pageSize: 20,
         builder: (context, snapshot, child) {
-          if (snapshot.isFetching) {
-            return const Center(child: CircularProgressIndicator());
-          }
           if (snapshot.hasError) {
             return Text('error ${snapshot.error}');
           }

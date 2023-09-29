@@ -7,7 +7,10 @@ import 'package:agora_chat_module/sourav_module/features/chat_module/models/conv
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
+import 'package:agora_chat_module/sourav_module/features/noitifications/notification_controller.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:agora_uikit/agora_uikit.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 // import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +19,6 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ChatViewModel extends ChangeNotifier {
   ChatViewModel() {
@@ -53,7 +55,7 @@ class ChatViewModel extends ChangeNotifier {
   set setFilteredSuggestions(List<String> newList) =>
       _filteredSuggestions = newList;
 
-  showLog(String message) {
+  void showLog(String message) {
     scaffoldMessengerKey.currentState
         ?.showSnackBar(SnackBar(content: Text(message)));
   }
@@ -62,6 +64,7 @@ class ChatViewModel extends ChangeNotifier {
   late String selectedConversationName = conversationsList.first.name;
   Conversations get getSelectedConversation => conversationsList
       .firstWhere((element) => element.name == selectedConversationName);
+  DomainUser? currentUser;
   List<DomainUser> groupMembers = [];
 
   void setupControllers({
@@ -76,7 +79,7 @@ class ChatViewModel extends ChangeNotifier {
     if (user != null) {
       isJoined = true;
       fetchConversations();
-      notifyListeners();
+      // notifyListeners();
     }
   }
 
@@ -154,7 +157,9 @@ class ChatViewModel extends ChangeNotifier {
     groupMembers.clear();
     _suggestions.clear();
     for (DomainUser user in listOfMembers) {
-      if (user.id != this.user!.uid) {
+      if (user.id == this.user!.uid) {
+        currentUser = user;
+      } else {
         groupMembers.add(user);
         _suggestions.add(user.displayName);
       }
@@ -396,74 +401,263 @@ class ChatViewModel extends ChangeNotifier {
   //agora audio/video
   final String appId = '7accc1c4b800403aa3bb41ecc95512c9';
   final String token =
-      '007eJxTYHgYKr3311lxG9Y18+Qrefjyf63TT6maLLnw4dMXrBZr2q0VGMwTk5OTDZNNkiwMDEwMjBMTjZOSTAxTk5MtTU0NjZItHfMEUxsCGRny6/lZGRkgEMQXZkjNKUpN0S1JLS7JzEvXTS/KLy1gYAAA+wYjrA==';
-  late final RtcEngine agoraEngine;
+      '007eJxTYLiQt/H883UVqY87j6Z38B/11243bdmtuZJvuc7JXZqTZporMJgnJicnGyabJFkYGJgYGCcmGiclmRimJidbmpoaGiVbLjopnNoQyMjwnzuZlZEBAkF8YYbUnKLUFN2S1OKSzLx03fSi/NICBgYA0VYmQQ==';
+  late AgoraClient client;
+  late RtcEngine agoraEngine;
   bool _isUserJoined = false;
+
   List<int> _listOfRemoteUserJoined = [];
+  List<int> get listOfRemoteUserJoined => _listOfRemoteUserJoined;
 
-  Future<void> setupVideoSDKEngine() async {
-    // retrieve or request camera and microphone permissions
-    await [Permission.microphone, Permission.camera].request();
+  bool _isMuted = false;
+  bool get isMuted => _isMuted;
+  int speakerVolume = 0;
 
-    //create an instance of the Agora engine
-    final agoraEngine = createAgoraRtcEngine();
-    await agoraEngine.initialize(RtcEngineContext(appId: appId));
+  Future<void> initializeVideoAgoraSDK() async {
+    try {
+      // Instantiate the client
+      client = AgoraClient(
+        agoraConnectionData: AgoraConnectionData(
+          uid: currentUser?.agoraId ?? 0,
+          appId: appId,
+          channelName: getSelectedConversation.name,
+          tempToken: token,
+        ),
+        agoraChannelData: AgoraChannelData(
+          channelProfileType: ChannelProfileType.channelProfileLiveBroadcasting,
+        ),
+        agoraEventHandlers: AgoraRtcEventHandlers(
+          onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+            showLog("Local user uid:${connection.localUid} joined the channel");
+            _isUserJoined = true;
+            final content = NotificationContent(
+              id: -1, // -1 is replaced by a random number
+              channelKey: 'alerts',
+              title: '${getSelectedConversation.name} calling you',
+              body:
+                  "${currentUser?.displayName} has initiated a group video call",
+              notificationLayout: NotificationLayout.BigText,
+            );
 
-    await agoraEngine.enableVideo();
+            NotificationController.createNewNotification(content);
+            notifyListeners();
+          },
+          onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+            showLog("Remote user uid:$remoteUid joined the channel");
+            // _listOfRemoteUserJoined.add(remoteUid);
+            // notifyListeners();
+          },
+          onUserOffline: (RtcConnection connection, int remoteUid,
+              UserOfflineReasonType reason) {
+            showLog("Remote user uid:$remoteUid left the channel");
 
-    // Register the event handler
-    agoraEngine.registerEventHandler(
-      RtcEngineEventHandler(
-        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-          showLog("Local user uid:${connection.localUid} joined the channel");
-          // setState(() {
-          _isUserJoined = true;
-          notifyListeners();
-          // });
-        },
-        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-          showLog("Remote user uid:$remoteUid joined the channel");
+            // _listOfRemoteUserJoined.remove(remoteUid);
+            _isUserJoined = false;
+            notifyListeners();
+          },
+        ),
+        agoraRtmChannelEventHandler: AgoraRtmChannelEventHandler(
+          onMemberJoined: (member) {
+            showLog("Remote user uid:${member.userId} joined the channel");
 
-          _listOfRemoteUserJoined.add(remoteUid);
-          notifyListeners();
-        },
-        onUserOffline: (RtcConnection connection, int remoteUid,
-            UserOfflineReasonType reason) {
-          showLog("Remote user uid:$remoteUid left the channel");
+            // _listOfRemoteUserJoined.add(member.userId);
+            // notifyListeners();
+          },
+          onMemberLeft: (member) {
+            showLog("Remote user uid:${member.userId} left the channel");
 
-          _listOfRemoteUserJoined.remove(remoteUid);
-          notifyListeners();
-        },
-      ),
-    );
+            // _listOfRemoteUserJoined.remove(member.userId);
+            // notifyListeners();
+          },
+          onMemberCountUpdated: (count) {
+            showLog("Total user count: $count");
+          },
+        ),
+      );
+
+      await client.initialize();
+    } on AgoraRtcException catch (e) {
+      showLog(e.message ?? '');
+    } on AgoraRtmChannelException catch (e) {
+      showLog(e.reason);
+    } on AgoraRtmClientException catch (e) {
+      showLog(e.reason);
+    } catch (e) {
+      showLog(e.toString());
+    }
+  }
+
+  Future<void> setupAudioSDKEngine() async {
+    try {
+      log('setupAudioSDKEngine() called!!');
+      // retrieve or request camera and microphone permissions
+      await [Permission.microphone].request();
+
+      //create an instance of the Agora engine
+      agoraEngine = createAgoraRtcEngine();
+      await agoraEngine.initialize(RtcEngineContext(appId: appId));
+
+      agoraEngine.registerAudioSpectrumObserver(AudioSpectrumObserver(
+        onLocalAudioSpectrum: (data) {},
+      ));
+
+      // Register the event handler
+      agoraEngine.registerEventHandler(
+        RtcEngineEventHandler(
+          onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+            showLog("Local user uid:${connection.localUid} joined the channel");
+            log('Local user id ==> ${connection.localUid}');
+            _isUserJoined = true;
+
+            final content = NotificationContent(
+              id: -1, // -1 is replaced by a random number
+              channelKey: 'alerts',
+              title: '${getSelectedConversation.name} calling you',
+              body:
+                  "${currentUser?.displayName} has initiated a group audio call",
+              notificationLayout: NotificationLayout.BigText,
+              payload: {'notificationId': '1234567890'},
+            );
+
+            NotificationController.createNewNotification(content);
+            notifyListeners();
+          },
+          onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+            showLog("Remote user uid:$remoteUid joined the channel");
+
+            if (!_listOfRemoteUserJoined.contains(remoteUid)) {
+              _listOfRemoteUserJoined.add(remoteUid);
+              notifyListeners();
+            }
+          },
+          onUserOffline: (RtcConnection connection, int remoteUid,
+              UserOfflineReasonType reason) {
+            showLog("Remote user uid:$remoteUid left the channel");
+
+            if (_listOfRemoteUserJoined.contains(remoteUid)) {
+              _listOfRemoteUserJoined.remove(remoteUid);
+              notifyListeners();
+            }
+          },
+          onAudioVolumeIndication:
+              (connection, speakers, speakerNumber, totalVolume) {
+            // showLog("onAudioVolumeIndication() callback triggered!!");
+            log('speakers.length ==> ${speakers.length}');
+            speakers.forEach((element) {
+              log("speakeresss!!!!@@ ${element.uid}");
+            });
+            for (AudioVolumeInfo speaker in speakers) {
+              log('speaker ==> ${speaker.volume}');
+              if (speaker.uid == 0) {
+                speakerVolume = speakers.first.volume ?? 0;
+                notifyListeners();
+              }
+            }
+          },
+          onLocalAudioStateChanged: (connection, state, error) {},
+        ),
+      );
+    } on AgoraRtcException catch (e) {
+      showLog(e.message ?? '');
+    } on AgoraRtmChannelException catch (e) {
+      showLog(e.reason);
+    } on AgoraRtmClientException catch (e) {
+      showLog(e.reason);
+    } catch (e) {
+      showLog(e.toString());
+    }
+  }
+
+  void disposeAudioAgora() async {
+    try {
+      await agoraEngine.leaveChannel();
+      await agoraEngine.release();
+    } on AgoraRtcException catch (e) {
+      showLog(e.message ?? '');
+    } on AgoraRtmChannelException catch (e) {
+      showLog(e.reason);
+    } on AgoraRtmClientException catch (e) {
+      showLog(e.reason);
+    } catch (e) {
+      showLog(e.toString());
+    }
   }
 
   void join() async {
-    await agoraEngine.startPreview();
+    try {
+      // Set channel options including the client role and channel profile
+      ChannelMediaOptions options = const ChannelMediaOptions(
+        clientRoleType: ClientRoleType.clientRoleBroadcaster,
+        channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+        autoSubscribeAudio: true,
+        publishMicrophoneTrack: true,
+      );
 
-    // Set channel options including the client role and channel profile
-    ChannelMediaOptions options = const ChannelMediaOptions(
-      clientRoleType: ClientRoleType.clientRoleBroadcaster,
-      channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-    );
+      log('currentUser?.agoraId ==> ${currentUser?.agoraId}');
 
-    await agoraEngine.joinChannel(
-      token: token,
-      channelId: getSelectedConversation.id,
-      options: options,
-      uid: 0,
-    );
+      await agoraEngine.muteLocalAudioStream(_isMuted);
+      await agoraEngine.muteAllRemoteAudioStreams(false);
+      await agoraEngine.enableAudioVolumeIndication(
+        interval: 100, // Reporting interval in milliseconds
+        smooth: 3, // Smoothing factor
+        reportVad: true,
+      );
+      await agoraEngine.enableAudioSpectrumMonitor();
+      await agoraEngine.joinChannel(
+        token: token,
+        channelId: getSelectedConversation.name,
+        options: options,
+        uid: currentUser?.agoraId ?? 0,
+      );
+    } on AgoraRtcException catch (e) {
+      showLog(e.message ?? '');
+    } on AgoraRtmChannelException catch (e) {
+      showLog(e.reason);
+    } on AgoraRtmClientException catch (e) {
+      showLog(e.reason);
+    } catch (e) {
+      showLog(e.toString());
+    }
   }
 
-  void leave() {
-    _isUserJoined = false;
-    _listOfRemoteUserJoined.clear();
-    agoraEngine.leaveChannel();
-    notifyListeners();
+  void leaveAudioCall() async {
+    try {
+      _isUserJoined = false;
+      // _listOfRemoteUserJoined.clear();
+      await agoraEngine.leaveChannel();
+      await agoraEngine.release();
+      _isMuted = false;
+      notifyListeners();
+      Navigator.of(globalKey.currentContext!).pop();
+    } on AgoraRtcException catch (e) {
+      showLog(e.message ?? '');
+    } on AgoraRtmChannelException catch (e) {
+      showLog(e.reason);
+    } on AgoraRtmClientException catch (e) {
+      showLog(e.reason);
+    } catch (e) {
+      showLog(e.toString());
+    }
   }
 
-  void disposeAgora() async {
-    await agoraEngine.leaveChannel();
-    agoraEngine.release();
+  onMuteClicked(bool value) async {
+    try {
+      _isMuted = value;
+      await agoraEngine.muteLocalAudioStream(_isMuted);
+      notifyListeners();
+    } on AgoraRtcException catch (e) {
+      showLog(e.message ?? '');
+    } on AgoraRtmChannelException catch (e) {
+      showLog(e.reason);
+    } on AgoraRtmClientException catch (e) {
+      showLog(e.reason);
+    } catch (e) {
+      showLog(e.toString());
+    }
   }
+
+  // void disposeVoiceAgora() async {
+  //   await agoraEngine.leaveChannel();
+  //   agoraEngine.release();
+  // }
 }

@@ -12,39 +12,23 @@ class VideoCallScreen extends StatefulWidget {
 
 class _VideoCallScreenState extends State<VideoCallScreen> {
   late final ChatViewModel chatViewModel;
-  late final AgoraClient client;
 
-// Initialize the Agora Engine
   @override
   void initState() {
     super.initState();
     chatViewModel = context.read<ChatViewModel>();
-    // Instantiate the client
-    client = AgoraClient(
-      agoraConnectionData: AgoraConnectionData(
-        appId: chatViewModel.appId,
-        channelName: chatViewModel.getSelectedConversation.name,
-      ),
-    );
-    initAgora(client);
+    chatViewModel.initializeVideoAgoraSDK();
   }
 
-  void initAgora(AgoraClient client) async {
-    await client.initialize();
-  }
-
-// Build your layout
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: SafeArea(
-          child: Stack(
-            children: [
-              AgoraVideoViewer(client: client),
-              AgoraVideoButtons(client: client),
-            ],
-          ),
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            AgoraVideoViewer(client: chatViewModel.client),
+            AgoraVideoButtons(client: chatViewModel.client),
+          ],
         ),
       ),
     );
