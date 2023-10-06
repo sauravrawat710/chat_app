@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 
 // ignore: constant_identifier_names
-enum MessageType { TEXT, IMAGE, FILE, CONTACT }
+enum MessageType { TEXT, IMAGE, FILE, CONTACT, AUDIO, LOCATION }
 
 class Message {
   final String id;
@@ -14,6 +14,7 @@ class Message {
   final bool isSender;
   final MessageType type;
   final String? imageUrl;
+  final String? audioUrl;
   final String? fileUrl;
   final PhoneContact? contactInfo;
 
@@ -26,6 +27,7 @@ class Message {
     this.isSender = false,
     required this.type,
     this.imageUrl,
+    this.audioUrl,
     this.fileUrl,
     this.contactInfo,
   });
@@ -39,6 +41,7 @@ class Message {
     bool? isSender,
     MessageType? type,
     String? imageUrl,
+    String? audioUrl,
     String? fileUrl,
     PhoneContact? contactInfo,
   }) =>
@@ -51,6 +54,7 @@ class Message {
         isSender: isSender ?? this.isSender,
         type: type ?? this.type,
         imageUrl: imageUrl ?? this.imageUrl,
+        audioUrl: audioUrl ?? this.audioUrl,
         fileUrl: fileUrl ?? this.fileUrl,
         contactInfo: contactInfo ?? this.contactInfo,
       );
@@ -68,6 +72,7 @@ class Message {
       sentBy: json["sentBy"],
       type: valueToEnum(json["type"]),
       imageUrl: json["imageUrl"],
+      audioUrl: json["audioUrl"],
       fileUrl: json["fileUrl"],
       contactInfo: json["contactInfo"] != null
           ? PhoneContact.fromMap({
@@ -89,6 +94,7 @@ class Message {
         "sentBy": sentBy,
         "type": type.name,
         "imageUrl": imageUrl,
+        "audioUrl": audioUrl,
         "fileUrl": fileUrl,
         "contactInfo": {
           "fullName": contactInfo?.fullName,
@@ -107,6 +113,10 @@ MessageType valueToEnum(String value) {
       return MessageType.FILE;
     case 'CONTACT':
       return MessageType.CONTACT;
+    case 'AUDIO':
+      return MessageType.AUDIO;
+    case 'LOCATION':
+      return MessageType.LOCATION;
     default:
       return MessageType.TEXT;
   }

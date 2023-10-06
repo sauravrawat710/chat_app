@@ -141,7 +141,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ],
                     ),
                     child: ListView(
-                      // mainAxisSize: MainAxisSize.min,
                       shrinkWrap: true,
                       children: value.filteredSuggestions.map((name) {
                         return ListTile(

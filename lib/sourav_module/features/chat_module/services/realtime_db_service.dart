@@ -127,8 +127,9 @@ class RealtimeDBService {
     required MessageType type,
     required User user,
     File? imageFile,
-    File? file,
+    File? docFile,
     PhoneContact? contact,
+    File? audioFile,
   }) async* {
     try {
       final msgRef = db.ref('messages/$conversationId');
@@ -169,10 +170,34 @@ class RealtimeDBService {
               return MessageStatus.ERROR;
           }
         });
-      } else if (type == MessageType.FILE && file != null) {
+      } else if (type == MessageType.AUDIO && audioFile != null) {
+        final ref = storage.ref().child("audio/");
+
+        final storageUploadTask =
+            ref.child(conversationRef.key!).putFile(audioFile);
+
+        yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
+          switch (event.state) {
+            case TaskState.error:
+              return MessageStatus.ERROR;
+            case TaskState.paused:
+              return MessageStatus.ERROR;
+            case TaskState.running:
+              return MessageStatus.SENDING;
+            case TaskState.success:
+              final url = await event.ref.getDownloadURL();
+              newMessage = newMessage.copyWith(audioUrl: url);
+              await conversationRef.update(newMessage.toJson());
+              return MessageStatus.SEND;
+            case TaskState.canceled:
+              return MessageStatus.ERROR;
+          }
+        });
+      } else if (type == MessageType.FILE && docFile != null) {
         final ref = storage.ref().child("files/");
 
-        final storageUploadTask = ref.child(conversationRef.key!).putFile(file);
+        final storageUploadTask =
+            ref.child(conversationRef.key!).putFile(docFile);
 
         yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
           switch (event.state) {

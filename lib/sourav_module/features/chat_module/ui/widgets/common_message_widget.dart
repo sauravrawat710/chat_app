@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/build_audio_file_widget.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -54,6 +55,8 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
         return _buildFileWidget();
       case MessageType.CONTACT:
         return _buildContactWidget();
+      case MessageType.AUDIO:
+        return BuildAudioFileWidget(message: widget.messages);
       default:
         return const SizedBox.shrink();
     }

@@ -115,10 +115,6 @@ class _BottomTypingTextWidgetState extends State<BottomTypingTextWidget>
                       return Transform.rotate(
                         angle: -3.14 / 5,
                         child: GestureDetector(
-                          // onTap: shouldEnable
-                          //     ? () => chatvm.sendMessage(MessageType.TEXT)
-                          //     : null,
-                          // onTap: () => _showMultiMediaPopupMenu(context),
                           onTap: () => _showAttachmentPopup(context),
                           child: const Icon(
                             Icons.attach_file_outlined,
@@ -190,6 +186,22 @@ class _BottomTypingTextWidgetState extends State<BottomTypingTextWidget>
             ListTile(
               leading: const Icon(Icons.contacts),
               title: const Text('Contact'),
+              onTap: () {
+                chatvm.pickContactAndSent();
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.audiotrack),
+              title: const Text('Audio'),
+              onTap: () {
+                chatvm.pickAudioAndSent();
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.location_on),
+              title: const Text('Location'),
               onTap: () {
                 chatvm.pickContactAndSent();
                 Navigator.pop(context);

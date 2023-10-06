@@ -40,8 +40,9 @@ class ChatViewModel extends ChangeNotifier {
   MessageStatus? messageStatus;
 
   XFile? imageFile;
-  FilePickerResult? file;
+  FilePickerResult? document;
   PhoneContact? contact;
+  FilePickerResult? audioFile;
   bool shouldShowTypingIndicator = false;
 
   final List<String> _suggestions = [];
@@ -233,7 +234,7 @@ class ChatViewModel extends ChangeNotifier {
     final pickedFile = await filePicker.pickFiles();
 
     if (pickedFile != null) {
-      file = pickedFile;
+      document = pickedFile;
       sendMessage(MessageType.FILE);
     }
   }
@@ -242,6 +243,17 @@ class ChatViewModel extends ChangeNotifier {
     final PhoneContact contact = await FlutterContactPicker.pickPhoneContact();
     this.contact = contact;
     sendMessage(MessageType.CONTACT);
+  }
+
+  Future<void> pickAudioAndSent() async {
+    final audioFile = await FilePicker.platform.pickFiles(
+      type: FileType.audio,
+    );
+
+    if (audioFile != null) {
+      this.audioFile = audioFile;
+      sendMessage(MessageType.AUDIO);
+    }
   }
 
   void sendMessage([MessageType type = MessageType.TEXT]) async {
@@ -297,9 +309,9 @@ class ChatViewModel extends ChangeNotifier {
             .postNewMessage(
           user: user!,
           conversationId: conversationId,
-          text: file!.names.first!,
+          text: document!.names.first!,
           type: type,
-          file: File(file!.paths.first!),
+          docFile: File(document!.paths.first!),
         )
             .listen((event) {
           if (messageStatus != event) {
@@ -323,6 +335,25 @@ class ChatViewModel extends ChangeNotifier {
             notifyListeners();
           }
         });
+        break;
+      case MessageType.AUDIO:
+        _dbService
+            .postNewMessage(
+          user: user!,
+          conversationId: conversationId,
+          text: 'audio',
+          type: type,
+          audioFile: File(audioFile!.paths.first!),
+        )
+            .listen((event) {
+          if (messageStatus != event) {
+            messageStatus = event;
+            notifyListeners();
+          }
+        });
+        break;
+      case MessageType.LOCATION:
+        // TODO: Handle this case.
         break;
     }
   }
