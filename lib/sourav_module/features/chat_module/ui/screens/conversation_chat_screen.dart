@@ -1,3 +1,4 @@
+import 'package:agora_chat_module/sourav_module/features/chat_module/models/conversations.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/video_call_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/voice_call_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/bottom_typing_text_widget.dart';
@@ -8,14 +9,16 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
-class GroupChatScreen extends StatefulWidget {
-  const GroupChatScreen({super.key});
+class ConversationChatScreen extends StatefulWidget {
+  const ConversationChatScreen({super.key, required this.conversations});
+
+  final Conversations conversations;
 
   @override
-  State<GroupChatScreen> createState() => _GroupChatScreenState();
+  State<ConversationChatScreen> createState() => _ConversationChatScreenState();
 }
 
-class _GroupChatScreenState extends State<GroupChatScreen> {
+class _ConversationChatScreenState extends State<ConversationChatScreen> {
   late final ChatViewModel chatvm;
 
   late final TextEditingController textEditingController;
@@ -32,15 +35,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       textEditingController: textEditingController,
       scrollController: scrollController,
     );
-    chatvm.fetchGroupConversationMembers();
-    chatvm.fetchConversationByConversationId();
+    chatvm.fetchGroupConversationMembers(widget.conversations.id);
+    // chatvm.fetchConversationByConversationId();
 
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
   }
 
   @override
@@ -55,7 +53,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF36454F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F2C33),
+        backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
         leadingWidth: 50.0,
         titleSpacing: -8.0,
         leading: Padding(
@@ -63,25 +61,35 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           child: CircleAvatar(
             backgroundColor: Colors.blueGrey,
             child: Consumer<ChatViewModel>(
-                builder: (context, value, child) =>
-                    Icon(Icons.group, color: Colors.grey[200])),
+              builder: (context, value, child) => Icon(
+                widget.conversations.type == 'group'
+                    ? Icons.group
+                    : Icons.person,
+                color: Colors.grey[200],
+              ),
+            ),
           ),
         ),
         title: Consumer<ChatViewModel>(
           builder: (context, value, child) => ListTile(
             title: Text(
-              value.selectedConversationName,
+              value.getSelectedConversation.type == 'private'
+                  ? value.getSelectedConversation.name.split('_').firstWhere(
+                      (element) => element != value.currentUser!.displayName)
+                  : value.getSelectedConversation.name,
               style: const TextStyle(color: Colors.white),
             ),
-            subtitle: Row(
-              children: value.groupMembers.map((e) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 5),
-                  child: Text(e.displayName,
-                      style: const TextStyle(color: Colors.white)),
-                );
-              }).toList(),
-            ),
+            subtitle: widget.conversations.type == 'group'
+                ? Row(
+                    children: value.groupMembers.map((e) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: Text(e.displayName,
+                            style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                  )
+                : null,
           ),
         ),
         actions: [

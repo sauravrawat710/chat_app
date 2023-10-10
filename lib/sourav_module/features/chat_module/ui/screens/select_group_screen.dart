@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/group_chat_screen.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/conversation_chat_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -53,78 +53,78 @@ class _SelectGroupScreenState extends State<SelectGroupScreen> {
           ),
         ],
       ),
-      body: Consumer<ChatViewModel>(
-        builder: (context, value, child) => Center(
-          child: value.isJoined
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 189, 216, 235),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Consumer<ChatViewModel>(
-                        builder: (context, value, child) =>
-                            DropdownButton<String>(
-                          value: value.selectedConversationName,
-                          onChanged: (newValue) {
-                            if (newValue != null) {
-                              value.onConversationDropwdownChange(newValue);
-                            }
-                          },
-                          items: value.conversationsList.map((conversations) {
-                            return DropdownMenuItem<String>(
-                              value: conversations.name,
-                              child: Text(
-                                conversations.name,
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                        height:
-                            20.0), // Add spacing between dropdown and button
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const GroupChatScreen()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 80, 99, 111),
-                        elevation: 4.0, // Add button elevation
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Text(
-                          'Enter Group Chat',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              : const Text(
-                  'Please login to continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-        ),
-      ),
+      // body: Consumer<ChatViewModel>(
+      //   builder: (context, value, child) => Center(
+      //     child: value.isJoined
+      //         ? Column(
+      //             mainAxisAlignment: MainAxisAlignment.center,
+      //             children: [
+      //               Container(
+      //                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      //                 decoration: BoxDecoration(
+      //                   color: const Color.fromARGB(255, 189, 216, 235),
+      //                   borderRadius: BorderRadius.circular(8.0),
+      //                 ),
+      //                 child: Consumer<ChatViewModel>(
+      //                   builder: (context, value, child) =>
+      //                       DropdownButton<String>(
+      //                     value: value.selectedConversationName,
+      //                     onChanged: (newValue) {
+      //                       if (newValue != null) {
+      //                         value.onConversationDropwdownChange(newValue);
+      //                       }
+      //                     },
+      //                     items: value.conversationsList.map((conversations) {
+      //                       return DropdownMenuItem<String>(
+      //                         value: conversations.name,
+      //                         child: Text(
+      //                           conversations.name,
+      //                           style: const TextStyle(
+      //                             fontSize: 16.0,
+      //                             color: Colors.black,
+      //                           ),
+      //                         ),
+      //                       );
+      //                     }).toList(),
+      //                   ),
+      //                 ),
+      //               ),
+      //               const SizedBox(
+      //                   height:
+      //                       20.0), // Add spacing between dropdown and button
+      //               ElevatedButton(
+      //                 onPressed: () {
+      //                   Navigator.push(
+      //                     context,
+      //                     MaterialPageRoute(
+      //                         builder: (context) => const GroupChatScreen()),
+      //                   );
+      //                 },
+      //                 style: ElevatedButton.styleFrom(
+      //                   backgroundColor: const Color.fromARGB(255, 80, 99, 111),
+      //                   elevation: 4.0, // Add button elevation
+      //                 ),
+      //                 child: const Padding(
+      //                   padding: EdgeInsets.all(12.0),
+      //                   child: Text(
+      //                     'Enter Group Chat',
+      //                     style: TextStyle(
+      //                       fontSize: 14.0,
+      //                       color: Colors.white,
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ),
+      //             ],
+      //           )
+      //         : const Text(
+      //             'Please login to continue',
+      //             style: TextStyle(
+      //               color: Colors.white,
+      //             ),
+      //           ),
+      //   ),
+      // ),
     );
   }
 

@@ -11,20 +11,31 @@ import 'package:agora_chat_module/sourav_module/features/noitifications/notifica
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:agora_uikit/agora_uikit.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-// import 'package:agora_chat_sdk/agora_chat_sdk.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:location/location.dart' as loc;
 import 'package:path_provider/path_provider.dart';
+// import 'package:permission_handler/permission_handler.dart' as permission;
 
 class ChatViewModel extends ChangeNotifier {
   ChatViewModel() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      isLoading = true;
+      notifyListeners();
       this.user = user;
+      log('user ==> $user');
+      _dbService.getUsersFromUserIds([user.uid]).then((users) {
+        log('getUsersFromUserIds called()');
+        log('users ==> $user');
+        currentUser = users.first;
+      });
+      isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -50,7 +61,6 @@ class ChatViewModel extends ChangeNotifier {
   String? _mention;
   String? get mention => _mention;
   set setMention(newValue) => _mention = newValue;
-
   List<String> _filteredSuggestions = [];
   List<String> get filteredSuggestions => _filteredSuggestions;
   set setFilteredSuggestions(List<String> newList) =>
@@ -62,11 +72,15 @@ class ChatViewModel extends ChangeNotifier {
   }
 
   List<Conversations> conversationsList = [];
-  late String selectedConversationName = conversationsList.first.name;
+  late String selectedConversationId;
   Conversations get getSelectedConversation => conversationsList
-      .firstWhere((element) => element.name == selectedConversationName);
+      .firstWhere((element) => element.id == selectedConversationId);
   DomainUser? currentUser;
+  List<DomainUser> allUserInfo = [];
   List<DomainUser> groupMembers = [];
+
+  late loc.Location location = loc.Location();
+  late LocationData locationData;
 
   void setupControllers({
     required TextEditingController textEditingController,
@@ -77,10 +91,11 @@ class ChatViewModel extends ChangeNotifier {
   }
 
   void checkIfUserLoggedIn() async {
+    log('checkIfUserLoggedIn called()');
     if (user != null) {
       isJoined = true;
       fetchConversations();
-      // notifyListeners();
+      notifyListeners();
     }
   }
 
@@ -99,7 +114,6 @@ class ChatViewModel extends ChangeNotifier {
           isJoined = true;
           await fetchConversations();
           notifyListeners();
-          Navigator.of(globalKey.currentContext!).pop();
         }
       } else {
         await auth.signOut();
@@ -111,16 +125,76 @@ class ChatViewModel extends ChangeNotifier {
     }
   }
 
-  void onConversationDropwdownChange(String conversationName) {
-    selectedConversationName = conversationName;
+  Future<void> fetchAllUserOnboard() async {
+    allUserInfo.clear();
+    isLoading = true;
+    final users = await _dbService.getAllUsersFromDB();
+    for (var element in users) {
+      if (element.id != user!.uid) {
+        allUserInfo.add(element);
+      }
+    }
+    isLoading = false;
     notifyListeners();
+  }
+
+  Future<bool> setupLocation() async {
+    final location = loc.Location();
+
+    var serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return false;
+      }
+    }
+
+    var permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<Conversations> createNewConversation({
+    required String name,
+    required List<String> participants,
+    required ConversationType conversationType,
+  }) async {
+    if (conversationsList.any((element) => element.name == name)) {
+      return conversationsList.firstWhere((element) => element.name == name);
+    } else {
+      try {
+        isLoading = true;
+        notifyListeners();
+        return await _dbService.createNewConversationInDB(
+          name: name,
+          participants: [...participants, user!.uid],
+          createdBy: user!.uid,
+          conversationType: conversationType,
+        );
+      } catch (e) {
+        showLog(e.toString());
+        rethrow;
+      } finally {
+        await fetchConversations();
+        isLoading = false;
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> fetchConversations() async {
     try {
-      // isLoading = true;
-      // notifyListeners();
-      conversationsList = await _dbService.getConversationsByUserId(user!.uid);
+      isLoading = true;
+      notifyListeners();
+      _dbService.getConversationsByUserId(user!.uid).listen((conv) {
+        conversationsList = conv;
+        notifyListeners();
+      });
     } catch (e) {
       showLog(e.toString());
     } finally {
@@ -151,7 +225,8 @@ class ChatViewModel extends ChangeNotifier {
     });
   }
 
-  void fetchGroupConversationMembers() async {
+  void fetchGroupConversationMembers(String conversationId) async {
+    selectedConversationId = conversationId;
     final listOfMembers = await _dbService.getGroupsMembers(
         conversationId: getSelectedConversation.id, currentUserUid: user!.uid);
 
@@ -256,6 +331,26 @@ class ChatViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> pickLocationAndSent() async {
+    final canSendLocation = await setupLocation();
+    if (canSendLocation != true) {
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text(
+      //         "We can't access your location at this time. Did you allow location access?"),
+      //   ),
+      // );
+    }
+
+    final loc = await location.getLocation();
+
+    locationData = LocationData(
+      latitude: loc.latitude!,
+      longitude: loc.longitude!,
+    );
+    sendMessage(MessageType.LOCATION);
+  }
+
   void sendMessage([MessageType type = MessageType.TEXT]) async {
     if (type == MessageType.TEXT && messageBoxController.text.isEmpty) {
       return;
@@ -297,7 +392,6 @@ class ChatViewModel extends ChangeNotifier {
           imageFile: File(imageFile!.path),
         )
             .listen((event) {
-          log('event ==> $event');
           if (messageStatus != event) {
             messageStatus = event;
             notifyListeners();
@@ -353,7 +447,23 @@ class ChatViewModel extends ChangeNotifier {
         });
         break;
       case MessageType.LOCATION:
-        // TODO: Handle this case.
+        _dbService
+            .postNewMessage(
+          user: user!,
+          conversationId: conversationId,
+          text: 'location',
+          type: type,
+          locationData: LocationData(
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+          ),
+        )
+            .listen((event) {
+          if (messageStatus != event) {
+            messageStatus = event;
+            notifyListeners();
+          }
+        });
         break;
     }
   }
@@ -577,27 +687,7 @@ class ChatViewModel extends ChangeNotifier {
 
             _listOfRemoteUserJoined.remove(userToRemove);
             notifyListeners();
-
-            // if (_listOfRemoteUserJoined.contains(remoteUid)) {
-            //   _listOfRemoteUserJoined.remove(remoteUid);
-            //   notifyListeners();
-            // }
           },
-          // onAudioVolumeIndication:
-          //     (connection, speakers, speakerNumber, totalVolume) {
-          //   // showLog("onAudioVolumeIndication() callback triggered!!");
-          //   log('speakers.length ==> ${speakers.length}');
-          //   speakers.forEach((element) {
-          //     log("speakeresss!!!!@@ ${element.uid}");
-          //   });
-          //   for (AudioVolumeInfo speaker in speakers) {
-          //     log('speaker ==> ${speaker.volume}');
-          //     if (speaker.uid == 0) {
-          //       speakerVolume = speakers.first.volume ?? 0;
-          //       notifyListeners();
-          //     }
-          //   }
-          // },
         ),
       );
     } on AgoraRtcException catch (e) {

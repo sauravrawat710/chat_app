@@ -203,7 +203,7 @@ class _BottomTypingTextWidgetState extends State<BottomTypingTextWidget>
               leading: const Icon(Icons.location_on),
               title: const Text('Location'),
               onTap: () {
-                chatvm.pickContactAndSent();
+                chatvm.pickLocationAndSent();
                 Navigator.pop(context);
               },
             ),

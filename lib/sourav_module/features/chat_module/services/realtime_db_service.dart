@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -10,8 +12,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 
-// ignore: constant_identifier_names
 enum MessageStatus { SENDING, SEND, ERROR }
+
+enum ConversationType { PRIVATE, GROUP }
 
 class RealtimeDBService {
   final db = FirebaseDatabase.instance;
@@ -28,18 +31,21 @@ class RealtimeDBService {
     db.ref().keepSynced(true);
   }
 
-  Future<List<Conversations>> getConversationsByUserId(String userId) async {
+  Stream<List<Conversations>> getConversationsByUserId(String userId) async* {
     try {
-      final result = await conversationRef.get();
-      final json = jsonDecode(jsonEncode(result.value));
-      final conversationList = <Conversations>[];
-      json.forEach((key, value) {
-        final conversation = Conversations.fromJson(json[key]);
-        if (conversation.members.contains(userId)) {
-          conversationList.add(conversation);
-        }
+      final streamOfData = conversationRef.onValue;
+
+      yield* streamOfData.asyncMap((event) {
+        final json = jsonDecode(jsonEncode(event.snapshot.value));
+        final conversationList = <Conversations>[];
+        json.forEach((key, value) {
+          final conversation = Conversations.fromJson(json[key]);
+          if (conversation.members.contains(userId)) {
+            conversationList.add(conversation);
+          }
+        });
+        return conversationList;
       });
-      return conversationList;
     } on FirebaseException catch (e) {
       log(e.message.toString());
       rethrow;
@@ -68,6 +74,47 @@ class RealtimeDBService {
     }
   }
 
+  Future<Conversations> createNewConversationInDB({
+    required String name,
+    required String createdBy,
+    required List<String> participants,
+    required ConversationType conversationType,
+  }) async {
+    try {
+      final result = conversationRef.push();
+
+      await result.update({
+        "id": result.key,
+        "createdAt": DateTime.now().millisecondsSinceEpoch,
+        "createdBy": createdBy,
+        "modifiedby": null,
+        "members": participants,
+        "name": name,
+        "recentMessage": {
+          "text": "this is latest message",
+          "readBy": {
+            "sentAt": DateTime.now().millisecondsSinceEpoch,
+            "sentBy": createdBy,
+          }
+        },
+        "type":
+            conversationType == ConversationType.GROUP ? "group" : "private",
+        "typingUsers": []
+      });
+
+      final conversation = await conversationRef.child(result.key!).get();
+      final json = jsonDecode(jsonEncode(conversation.value));
+
+      return Conversations.fromJson(json);
+    } on FirebaseException catch (e) {
+      log(e.message.toString());
+      rethrow;
+    } catch (e) {
+      log('errrrrr =>$e');
+      rethrow;
+    }
+  }
+
   Future<List<DomainUser>> getGroupsMembers(
       {required String conversationId, required String currentUserUid}) async {
     try {
@@ -87,13 +134,24 @@ class RealtimeDBService {
     }
   }
 
+  Future<List<DomainUser>> getAllUsersFromDB() async {
+    final List<DomainUser> usersList = [];
+    final result = await usersRef.get();
+    final mapOfData = Map<String, dynamic>.from(result.value as Map);
+    for (var e in mapOfData.entries) {
+      final map = Map<String, dynamic>.from(e.value);
+      final domainUser = DomainUser.fromJson(map);
+      usersList.add(domainUser);
+    }
+    return usersList;
+  }
+
   Future<List<DomainUser>> getUsersFromUserIds(
       List<String> listOfUserId) async {
     final List<DomainUser> usersList = [];
     for (String userId in listOfUserId) {
       final result = await usersRef.child(userId).get();
       final mapOfData = Map<String, dynamic>.from(result.value as Map);
-      log('mapOfData in userId ==> $mapOfData');
       final domainUser = DomainUser.fromJson(mapOfData);
       usersList.add(domainUser);
     }
@@ -130,16 +188,17 @@ class RealtimeDBService {
     File? docFile,
     PhoneContact? contact,
     File? audioFile,
+    LocationData? locationData,
   }) async* {
     try {
       final msgRef = db.ref('messages/$conversationId');
 
-      final conversationRef = msgRef.push();
+      final conversationNode = msgRef.push();
 
       final int timeStamp = DateTime.now().millisecondsSinceEpoch;
 
       Message newMessage = Message.fromJson({
-        "id": conversationRef.key,
+        "id": conversationNode.key,
         "text": text,
         "sentAt": timeStamp,
         "seenBy": <String>[],
@@ -151,7 +210,7 @@ class RealtimeDBService {
         final ref = storage.ref().child("images/");
 
         final storageUploadTask =
-            ref.child(conversationRef.key!).putFile(imageFile);
+            ref.child(conversationNode.key!).putFile(imageFile);
 
         yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
           switch (event.state) {
@@ -164,7 +223,7 @@ class RealtimeDBService {
             case TaskState.success:
               final url = await event.ref.getDownloadURL();
               newMessage = newMessage.copyWith(imageUrl: url);
-              await conversationRef.update(newMessage.toJson());
+              await conversationNode.update(newMessage.toJson());
               return MessageStatus.SEND;
             case TaskState.canceled:
               return MessageStatus.ERROR;
@@ -174,7 +233,7 @@ class RealtimeDBService {
         final ref = storage.ref().child("audio/");
 
         final storageUploadTask =
-            ref.child(conversationRef.key!).putFile(audioFile);
+            ref.child(conversationNode.key!).putFile(audioFile);
 
         yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
           switch (event.state) {
@@ -187,7 +246,7 @@ class RealtimeDBService {
             case TaskState.success:
               final url = await event.ref.getDownloadURL();
               newMessage = newMessage.copyWith(audioUrl: url);
-              await conversationRef.update(newMessage.toJson());
+              await conversationNode.update(newMessage.toJson());
               return MessageStatus.SEND;
             case TaskState.canceled:
               return MessageStatus.ERROR;
@@ -197,7 +256,7 @@ class RealtimeDBService {
         final ref = storage.ref().child("files/");
 
         final storageUploadTask =
-            ref.child(conversationRef.key!).putFile(docFile);
+            ref.child(conversationNode.key!).putFile(docFile);
 
         yield* storageUploadTask.snapshotEvents.asyncMap((event) async {
           switch (event.state) {
@@ -210,7 +269,7 @@ class RealtimeDBService {
             case TaskState.success:
               final url = await event.ref.getDownloadURL();
               newMessage = newMessage.copyWith(fileUrl: url);
-              await conversationRef.update(newMessage.toJson());
+              await conversationNode.update(newMessage.toJson());
               return MessageStatus.SEND;
             case TaskState.canceled:
               return MessageStatus.ERROR;
@@ -219,13 +278,29 @@ class RealtimeDBService {
       } else if (type == MessageType.CONTACT && contact != null) {
         yield MessageStatus.SENDING;
         newMessage = newMessage.copyWith(contactInfo: contact);
-        await conversationRef.update(newMessage.toJson());
+        await conversationNode.update(newMessage.toJson());
+        yield MessageStatus.SEND;
+      }
+      if (type == MessageType.LOCATION && locationData != null) {
+        yield MessageStatus.SENDING;
+        newMessage = newMessage.copyWith(location: locationData);
+        await conversationNode.update(newMessage.toJson());
         yield MessageStatus.SEND;
       } else {
         yield MessageStatus.SENDING;
-        await conversationRef.update(newMessage.toJson());
+        await conversationNode.update(newMessage.toJson());
         yield MessageStatus.SEND;
       }
+
+      await conversationRef.child(conversationId).update({
+        "recentMessage": {
+          "text": newMessage.text,
+          "readBy": {
+            "sentAt": newMessage.sentAt,
+            "sentBy": newMessage.sentBy,
+          }
+        },
+      });
     } on FirebaseException catch (e) {
       log(e.message.toString());
       yield MessageStatus.ERROR;
@@ -273,7 +348,6 @@ class RealtimeDBService {
     required List<String> updatedSeenBy,
   }) async {
     try {
-      log('markMessageAsRead() called!!!');
       await messagesRef
           .child(conversationId)
           .child(messageId)

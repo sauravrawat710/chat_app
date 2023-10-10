@@ -30,6 +30,9 @@ dependencies:
   awesome_notifications: ^0.7.6
   palette_generator: ^0.3.3+3
   audioplayers: ^4.1.0
+  location: ^5.0.3
+  google_maps_flutter: ^2.3.0
+  timeago: ^3.5.0
 
 dev_dependencies:
   flutter_test:
