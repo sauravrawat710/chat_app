@@ -13,13 +13,6 @@ class ConversationListScreen extends StatefulWidget {
 
 class _ConversationListScreenState extends State<ConversationListScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _controller;
-  @override
-  void initState() {
-    super.initState();
-    _controller = TabController(length: 4, vsync: this, initialIndex: 1);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,18 +39,6 @@ class _ConversationListScreenState extends State<ConversationListScreen>
                   child: Text("New group"),
                 ),
                 const PopupMenuItem(
-                  value: "New broadcast",
-                  child: Text("New broadcast"),
-                ),
-                const PopupMenuItem(
-                  value: "Whatsapp Web",
-                  child: Text("Whatsapp Web"),
-                ),
-                const PopupMenuItem(
-                  value: "Starred messages",
-                  child: Text("Starred messages"),
-                ),
-                const PopupMenuItem(
                   value: "Settings",
                   child: Text("Settings"),
                 ),
@@ -69,28 +50,7 @@ class _ConversationListScreenState extends State<ConversationListScreen>
             },
           )
         ],
-        // bottom: TabBar(
-        //   controller: _controller,
-        //   indicatorColor: Colors.greenAccent,
-        //   labelColor: Colors.greenAccent,
-        //   unselectedLabelColor: Colors.white,
-        //   tabs: const [
-        //     Tab(icon: Icon(Icons.camera_alt)),
-        //     Tab(text: "Chats"),
-        //     Tab(text: "Status"),
-        //     Tab(text: "Calls")
-        //   ],
-        // ),
       ),
-      // body: TabBarView(
-      //   controller: _controller,
-      //   children: const [
-      //     Center(child: Text("CAMERA")),
-      //     ConversationListWidget(),
-      //     Center(child: Text("STATUS")),
-      //     Center(child: Text("CALLS")),
-      //   ],
-      // ),
       body: const ConversationListWidget(),
     );
   }

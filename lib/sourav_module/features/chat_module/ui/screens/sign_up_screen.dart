@@ -1,17 +1,17 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/conversation_list_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/sign_up_screen.dart';
+import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/login_screen.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
+  late final TextEditingController displayNameController;
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
 
@@ -20,12 +20,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    displayNameController = TextEditingController();
     emailController = TextEditingController();
     passwordController = TextEditingController();
   }
 
   @override
   void dispose() {
+    displayNameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -45,12 +47,31 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Login with Firebase',
+                  'Create New User',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 24,
                     color: Colors.white,
                     letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: displayNameController,
+                  decoration: InputDecoration(
+                    hintText: 'Display name',
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(.8)),
+                    prefixIcon: Icon(
+                      Icons.smart_display,
+                      color: Colors.white.withOpacity(.8),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -107,34 +128,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                 isLoading = true;
                               });
                               value
-                                  .loginOrLogout(
+                                  .createNewUser(
+                                displayName: displayNameController.text,
                                 email: emailController.text,
                                 password: passwordController.text,
                               )
-                                  .then((value) {
+                                  .then((isCreated) {
                                 setState(() {
                                   isLoading = false;
                                 });
-                                if (value != null && value) {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ConversationListScreen()),
-                                  );
+
+                                if (isCreated) {
+                                  Navigator.of(context)
+                                      .pushReplacement(MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ));
                                 }
                               });
                             },
-                      child: Text(isLoading ? 'Loading...' : 'Login'),
+                      child: Text(isLoading ? 'Creating...' : 'Create'),
                     ),
                   );
                 }),
                 TextButton(
                   onPressed: () =>
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => const SignUpScreen(),
+                    builder: (context) => const LoginScreen(),
                   )),
                   child: const Text(
-                    'Create New Account',
+                    'Already have an account?',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

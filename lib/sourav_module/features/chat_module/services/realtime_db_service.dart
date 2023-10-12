@@ -134,6 +134,32 @@ class RealtimeDBService {
     }
   }
 
+  Future<bool> createNewUserInDB({
+    required String userID,
+    required String displayName,
+    required String email,
+  }) async {
+    try {
+      final newUserRef = usersRef.child(userID);
+
+      await newUserRef.update({
+        "id": userID,
+        "displayName": displayName,
+        "email": email,
+        "photoUrl": "",
+        "conversations": []
+      });
+
+      return true;
+    } on FirebaseException catch (e) {
+      log(e.message.toString());
+      rethrow;
+    } catch (e) {
+      log('err =>$e');
+      rethrow;
+    }
+  }
+
   Future<List<DomainUser>> getAllUsersFromDB() async {
     final List<DomainUser> usersList = [];
     final result = await usersRef.get();
@@ -171,7 +197,6 @@ class RealtimeDBService {
         usersList.add(domainUser.first);
         continue;
       }
-      log('userList ==> $usersList');
       return usersList;
     } catch (e) {
       log('error ==> $e');
@@ -316,6 +341,16 @@ class RealtimeDBService {
       final msgRef = db.ref('messages/$conversationId/${updatedMessage.id}');
 
       await msgRef.update({"text": updatedMessage.text});
+
+      await conversationRef.child(conversationId).update({
+        "recentMessage": {
+          "text": updatedMessage.text,
+          "readBy": {
+            "sentAt": updatedMessage.sentAt,
+            "sentBy": updatedMessage.sentBy,
+          }
+        },
+      });
       return true;
     } on FirebaseException catch (e) {
       log(e.message.toString());

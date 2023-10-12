@@ -121,18 +121,23 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   child: Consumer<ChatViewModel>(
                     builder: (context, value, child) => ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green),
-                      onPressed: () {
-                        context.read<ChatViewModel>().createNewConversation(
-                              name: groupNameController.text,
-                              participants: selectedParticipants,
-                              conversationType: ConversationType.GROUP,
-                            );
+                        backgroundColor: Colors.green,
+                      ),
+                      onPressed: selectedParticipants.isEmpty
+                          ? null
+                          : () {
+                              context
+                                  .read<ChatViewModel>()
+                                  .createNewConversation(
+                                    name: groupNameController.text,
+                                    participants: selectedParticipants,
+                                    conversationType: ConversationType.GROUP,
+                                  );
 
-                        Navigator.of(context).pop();
-                      },
+                              Navigator.of(context).pop();
+                            },
                       child: Text(
-                        value.isLoading ? 'loading...' : 'Create Group',
+                        value.isLoading ? 'Creating...' : 'Create Group',
                       ),
                     ),
                   ),

@@ -71,9 +71,7 @@ class ReceiverRowView extends StatelessWidget {
         Flexible(
           flex: 15,
           fit: FlexFit.tight,
-          child: Container(
-            width: 50.0,
-          ),
+          child: Container(width: 50.0),
         ),
       ],
     );

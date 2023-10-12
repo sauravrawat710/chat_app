@@ -26,10 +26,11 @@ class _SenderRowViewState extends State<SenderRowView> {
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).size.height * .2;
+    late Offset offset;
     final chatVm = context.read<ChatViewModel>();
     return GestureDetector(
-      onLongPress: () => _showPopupMenu(context, top),
+      onTapDown: (TapDownDetails details) => offset = details.globalPosition,
+      onLongPress: () => _showPopupMenu(context: context, offset: offset),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -79,18 +80,18 @@ class _SenderRowViewState extends State<SenderRowView> {
                             size: 12,
                           ),
                         ),
-                        if (widget.messageData.seenBy.isNotEmpty)
-                          Positioned(
-                            left: 2,
-                            child: Icon(
-                              Icons.check,
-                              color: (widget.messageData.seenBy.length ==
-                                      chatVm.groupMembers.length)
-                                  ? Colors.blue
-                                  : Colors.white,
-                              size: 12,
-                            ),
+                        // if (widget.messageData.seenBy.isNotEmpty)
+                        Positioned(
+                          left: 2,
+                          child: Icon(
+                            Icons.check,
+                            color: (widget.messageData.seenBy.length ==
+                                    chatVm.groupMembers.length)
+                                ? Colors.blue
+                                : Colors.white,
+                            size: 12,
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -104,51 +105,74 @@ class _SenderRowViewState extends State<SenderRowView> {
     );
   }
 
-  Future<dynamic> _showPopupMenu(BuildContext context, double top) {
+  Future<dynamic> _showPopupMenu({
+    required BuildContext context,
+    required Offset offset,
+  }) {
+    final screenSize = MediaQuery.of(context).size;
     return showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(50, top, 0, 0),
+      position: RelativeRect.fromLTRB(
+        offset.dx,
+        offset.dy,
+        screenSize.width - offset.dx,
+        screenSize.height - offset.dy,
+      ),
       items: [
-        PopupMenuItem(
-          onTap: () {
-            showBottomSheet(
-              context: context,
-              builder: (context) => BottomSheet(
-                onClosing: () {},
-                builder: (context) => Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        initialValue: widget.messageData.text,
-                        cursorColor: Colors.white,
-                        keyboardType: TextInputType.multiline,
-                        minLines: 1,
-                        maxLines: 6,
-                        style: const TextStyle(color: Colors.grey),
-                        decoration: const InputDecoration(
-                          hintText: 'Type your message...',
-                          hintStyle: TextStyle(color: Colors.black38),
-                          border: InputBorder.none,
+        if (widget.messageData.type == MessageType.TEXT)
+          PopupMenuItem(
+            onTap: () {
+              showBottomSheet(
+                context: context,
+                builder: (context) => BottomSheet(
+                  backgroundColor: Color(0xFF1F2C33).withOpacity(.92),
+                  onClosing: () {},
+                  builder: (context) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          initialValue: widget.messageData.text,
+                          cursorColor: Colors.white,
+                          keyboardType: TextInputType.multiline,
+                          minLines: 1,
+                          maxLines: 6,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            filled: true,
+                            hintText: 'Type your message...',
+                            hintStyle: TextStyle(color: Colors.black38),
+                            fillColor: Colors.blueGrey,
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.white,
+                              ), // Customize border
+                            ),
+                          ),
+                          onChanged: (value) => updatedMessage = value,
                         ),
-                        onChanged: (value) => updatedMessage = value,
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<ChatViewModel>().editMessage(
-                            widget.messageData.copyWith(text: updatedMessage));
-                      },
-                      child: const Text('Update'),
-                    ),
-                  ],
+                      SizedBox(
+                        width: 100,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0XFF075E54)),
+                          onPressed: () {
+                            context.read<ChatViewModel>().editMessage(widget
+                                .messageData
+                                .copyWith(text: updatedMessage));
+                          },
+                          child: const Text('Edit'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-          child: const Text('Edit'),
-        ),
+              );
+            },
+            child: const Text('Edit'),
+          ),
         PopupMenuItem(
           onTap: () async {
             await context

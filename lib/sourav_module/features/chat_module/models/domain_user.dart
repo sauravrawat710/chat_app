@@ -2,7 +2,7 @@ import 'dart:convert';
 
 class DomainUser {
   final String id;
-  final int agoraId;
+  final int? agoraId;
   final String displayName;
   final String email;
   final String photoUrl;
@@ -10,7 +10,7 @@ class DomainUser {
 
   DomainUser({
     required this.id,
-    required this.agoraId,
+    this.agoraId,
     required this.displayName,
     required this.email,
     required this.photoUrl,
@@ -45,7 +45,9 @@ class DomainUser {
         displayName: json["displayName"],
         email: json["email"],
         photoUrl: json["photoUrl"],
-        conversations: List<String>.from(json["conversations"].map((x) => x)),
+        conversations: json["conversations"] != null
+            ? List<String>.from(json["conversations"].map((x) => x))
+            : [],
       );
 
   Map<String, dynamic> toJson() => {

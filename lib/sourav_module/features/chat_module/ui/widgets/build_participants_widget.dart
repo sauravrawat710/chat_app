@@ -11,11 +11,13 @@ class BuildParticipateWidget extends StatelessWidget {
     required this.user,
     required this.isSelected,
     required this.onUserSelected,
+    required this.shouldStartConversation,
   });
 
   final DomainUser user;
   final bool isSelected;
   final Function(bool isSelected) onUserSelected;
+  final bool shouldStartConversation;
 
   @override
   Widget build(BuildContext context) {
@@ -28,22 +30,25 @@ class BuildParticipateWidget extends StatelessWidget {
           if (isSelected) {
             onUserSelected(false);
           } else {
-            chatVm
-                .createNewConversation(
-              name: "${chatVm.currentUser!.displayName}_${user.displayName}",
-              participants: [user.id],
-              conversationType: ConversationType.PRIVATE,
-            )
-                .then((conversation) {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) =>
-                    ConversationChatScreen(conversations: conversation),
-              ));
-            });
+            onUserSelected(true);
+            if (shouldStartConversation) {
+              chatVm
+                  .createNewConversation(
+                name: "${chatVm.currentUser!.displayName}_${user.displayName}",
+                participants: [user.id],
+                conversationType: ConversationType.PRIVATE,
+              )
+                  .then((conversation) {
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) =>
+                      ConversationChatScreen(conversations: conversation),
+                ));
+              });
+            }
           }
         },
         child: Container(
-          padding: const EdgeInsets.all(18.0),
+          padding: const EdgeInsets.symmetric(horizontal: 18.0),
           color: isSelected ? const Color(0xFF36454F) : null,
           child: Row(
             children: [

@@ -94,6 +94,7 @@ class _StartNewConversationScreenState
               return BuildParticipateWidget(
                 user: user,
                 isSelected: selectedUsers.contains(user),
+                shouldStartConversation: selectedUsers.isEmpty,
                 onUserSelected: (isSelected) {
                   setState(() {
                     if (isSelected) {

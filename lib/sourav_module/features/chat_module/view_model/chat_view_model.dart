@@ -28,10 +28,8 @@ class ChatViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
       this.user = user;
-      log('user ==> $user');
+
       _dbService.getUsersFromUserIds([user.uid]).then((users) {
-        log('getUsersFromUserIds called()');
-        log('users ==> $user');
         currentUser = users.first;
       });
       isLoading = false;
@@ -91,7 +89,6 @@ class ChatViewModel extends ChangeNotifier {
   }
 
   void checkIfUserLoggedIn() async {
-    log('checkIfUserLoggedIn called()');
     if (user != null) {
       isJoined = true;
       fetchConversations();
@@ -99,7 +96,7 @@ class ChatViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> loginOrLogout({String? email, String? password}) async {
+  Future<bool?> loginOrLogout({String? email, String? password}) async {
     try {
       final auth = FirebaseAuth.instance;
 
@@ -114,14 +111,55 @@ class ChatViewModel extends ChangeNotifier {
           isJoined = true;
           await fetchConversations();
           notifyListeners();
+          return true;
         }
+        return false;
       } else {
         await auth.signOut();
         isJoined = false;
         notifyListeners();
+        return null;
       }
     } on FirebaseAuthException catch (e) {
       showLog(e.message!);
+    } catch (e) {
+      showLog(e.toString());
+    }
+    return null;
+  }
+
+  Future<bool> createNewUser({
+    required String displayName,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final userCred =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (userCred.user != null) {
+        return _dbService.createNewUserInDB(
+          userID: userCred.user!.uid,
+          displayName: displayName,
+          email: email,
+        );
+      }
+      return false;
+    } on FirebaseAuthException catch (e) {
+      showLog(e.message!);
+      return false;
+    } catch (e) {
+      showLog(e.toString());
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -193,6 +231,11 @@ class ChatViewModel extends ChangeNotifier {
       notifyListeners();
       _dbService.getConversationsByUserId(user!.uid).listen((conv) {
         conversationsList = conv;
+        conversationsList.sort((a, b) =>
+            DateTime.fromMillisecondsSinceEpoch(b.recentMessage.readBy.sentAt)
+                .compareTo(DateTime.fromMillisecondsSinceEpoch(
+                    a.recentMessage.readBy.sentAt)));
+
         notifyListeners();
       });
     } catch (e) {
@@ -245,6 +288,9 @@ class ChatViewModel extends ChangeNotifier {
 
   void detectUserMention() {
     final text = messageBoxController.text;
+    if (messageBoxController.selection.baseOffset == -1) {
+      return;
+    }
     final index =
         text.lastIndexOf('@', messageBoxController.selection.baseOffset);
 
@@ -725,8 +771,6 @@ class ChatViewModel extends ChangeNotifier {
         autoSubscribeAudio: true,
         publishMicrophoneTrack: true,
       );
-
-      log('currentUser?.agoraId ==> ${currentUser?.agoraId}');
 
       await agoraEngine.muteLocalAudioStream(_isMuted);
       await agoraEngine.muteAllRemoteAudioStreams(false);

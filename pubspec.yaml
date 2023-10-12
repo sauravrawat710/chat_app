@@ -33,6 +33,7 @@ dependencies:
   location: ^5.0.3
   google_maps_flutter: ^2.3.0
   timeago: ^3.5.0
+  emoji_picker_flutter: ^1.6.2
 
 dev_dependencies:
   flutter_test:

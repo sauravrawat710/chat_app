@@ -32,12 +32,22 @@ class _ConversationListWidgetState extends State<ConversationListWidget> {
         child: const Icon(Icons.chat, color: Colors.black),
       ),
       body: Consumer<ChatViewModel>(
-        builder: (context, value, child) => ListView.builder(
-          itemCount: value.conversationsList.length,
-          itemBuilder: (contex, index) => SingleConversationCard(
-            conversations: value.conversationsList[index],
-          ),
-        ),
+        builder: (context, value, child) {
+          if (value.conversationsList.isEmpty) {
+            return Center(
+              child: Text(
+                'No Conversation yet.',
+                style: TextStyle(color: Colors.blueGrey[200]),
+              ),
+            );
+          }
+          return ListView.builder(
+            itemCount: value.conversationsList.length,
+            itemBuilder: (contex, index) => SingleConversationCard(
+              conversations: value.conversationsList[index],
+            ),
+          );
+        },
       ),
     );
   }
