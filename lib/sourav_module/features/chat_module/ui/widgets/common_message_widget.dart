@@ -3,6 +3,7 @@ import 'package:agora_chat_module/sourav_module/features/chat_module/models/mess
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/build_audio_file_widget.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/map_image_preview.dart';
 import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -162,8 +163,8 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
               const SizedBox(height: 5),
             ],
             Expanded(
-              child: Image.network(
-                widget.messages.imageUrl!,
+              child: CachedNetworkImage(
+                imageUrl: widget.messages.imageUrl!,
                 fit: BoxFit.contain,
               ),
             ),

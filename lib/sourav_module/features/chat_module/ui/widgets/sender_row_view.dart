@@ -125,7 +125,7 @@ class _SenderRowViewState extends State<SenderRowView> {
               showBottomSheet(
                 context: context,
                 builder: (context) => BottomSheet(
-                  backgroundColor: Color(0xFF1F2C33).withOpacity(.92),
+                  backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
                   onClosing: () {},
                   builder: (context) => Column(
                     mainAxisSize: MainAxisSize.min,
