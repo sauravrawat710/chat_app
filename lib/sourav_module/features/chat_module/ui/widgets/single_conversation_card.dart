@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/conversations.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/conversation_chat_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../../models/conversations.dart';
+import '../screens/conversation_chat_screen.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter/material.dart';

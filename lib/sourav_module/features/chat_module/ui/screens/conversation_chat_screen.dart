@@ -1,10 +1,10 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/conversations.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/video_call_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/voice_call_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/bottom_typing_text_widget.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/chat_list_view.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/typing_indicator.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../../models/conversations.dart';
+import 'video_call_screen.dart';
+import 'voice_call_screen.dart';
+import '../widgets/bottom_typing_text_widget.dart';
+import '../widgets/chat_list_view.dart';
+import '../widgets/typing_indicator.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';

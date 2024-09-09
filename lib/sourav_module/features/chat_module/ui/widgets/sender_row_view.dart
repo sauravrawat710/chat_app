@@ -1,6 +1,6 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/common_message_widget.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../../models/messages.dart';
+import 'common_message_widget.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart' as intl;

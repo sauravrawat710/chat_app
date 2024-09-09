@@ -1,10 +1,10 @@
 import 'dart:developer';
 
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/receiver_row_widget.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/sender_row_view.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../../models/messages.dart';
+import '../../services/realtime_db_service.dart';
+import 'receiver_row_widget.dart';
+import 'sender_row_view.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_ui_database/firebase_ui_database.dart';
 import 'package:flutter/material.dart';

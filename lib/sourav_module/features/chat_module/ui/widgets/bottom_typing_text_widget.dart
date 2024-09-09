@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart' as foundation;
 
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../../models/messages.dart';
+import '../../services/realtime_db_service.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';

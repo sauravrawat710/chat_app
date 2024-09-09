@@ -1,4 +1,4 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/create_group_screen.dart';
+import '../screens/create_group_screen.dart';
 import 'package:flutter/material.dart';
 
 class BuildNewGroupButton extends StatelessWidget {

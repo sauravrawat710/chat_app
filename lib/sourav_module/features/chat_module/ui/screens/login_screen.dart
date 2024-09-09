@@ -1,6 +1,6 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/conversation_list_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/sign_up_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import 'conversation_list_screen.dart';
+import 'sign_up_screen.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

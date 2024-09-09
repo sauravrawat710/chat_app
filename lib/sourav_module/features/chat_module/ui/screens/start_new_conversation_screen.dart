@@ -1,8 +1,8 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/create_group_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/build_new_group_button.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/build_participants_widget.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../../models/domain_user.dart';
+import 'create_group_screen.dart';
+import '../widgets/build_new_group_button.dart';
+import '../widgets/build_participants_widget.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

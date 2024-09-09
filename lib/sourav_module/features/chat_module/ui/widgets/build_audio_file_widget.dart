@@ -1,4 +1,4 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
+import '../../models/messages.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 

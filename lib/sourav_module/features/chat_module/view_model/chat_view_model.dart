@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:agora_chat_module/main.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/conversations.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/services/realtime_db_service.dart';
-import 'package:agora_chat_module/sourav_module/features/noitifications/notification_controller.dart';
+import '../../../../main.dart';
+import '../models/conversations.dart';
+import '../models/domain_user.dart';
+import '../models/messages.dart';
+import '../services/realtime_db_service.dart';
+import '../../noitifications/notification_controller.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:agora_uikit/agora_uikit.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';

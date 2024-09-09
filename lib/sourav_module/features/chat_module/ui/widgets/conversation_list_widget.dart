@@ -1,6 +1,6 @@
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/start_new_conversation_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/widgets/single_conversation_card.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import '../screens/start_new_conversation_screen.dart';
+import 'single_conversation_card.dart';
+import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

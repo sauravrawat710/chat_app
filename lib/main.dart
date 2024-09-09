@@ -1,10 +1,10 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:agora_chat_module/firebase_options.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/ui/screens/landing_screen.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/view_model/chat_view_model.dart';
-import 'package:agora_chat_module/sourav_module/features/noitifications/notification_controller.dart';
+import 'firebase_options.dart';
+import 'sourav_module/features/chat_module/ui/screens/landing_screen.dart';
+import 'sourav_module/features/chat_module/view_model/chat_view_model.dart';
+import 'sourav_module/features/noitifications/notification_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
