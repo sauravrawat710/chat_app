@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyBUaJdWU1LoQ55ydiuO1mUhsAfAT3MtBYs</string>
+	<string>AIzaSyC4pQ64SMydUnjRy69OcvsPNiZ8JokukVk</string>
 	<key>GCM_SENDER_ID</key>
-	<string>699050401031</string>
+	<string>256905096017</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.agoraChatModule</string>
+	<string>com.example.chatApp</string>
 	<key>PROJECT_ID</key>
-	<string>realtime-chat-c4626</string>
+	<string>chat-app-eb5df</string>
 	<key>STORAGE_BUCKET</key>
-	<string>realtime-chat-c4626.appspot.com</string>
+	<string>chat-app-eb5df.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:699050401031:ios:2a0ee43316322239a979a2</string>
+	<string>1:256905096017:ios:677c8fa1a96884c4e74170</string>
+	<key>DATABASE_URL</key>
+	<string>https://chat-app-eb5df-default-rtdb.asia-southeast1.firebasedatabase.app</string>
 </dict>
 </plist>

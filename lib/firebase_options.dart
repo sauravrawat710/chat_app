@@ -50,21 +50,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCHuD-hSApk506oNMrhVMvdcocRWxHvH4E',
-    appId: '1:699050401031:android:abad99050360dd67a979a2',
-    messagingSenderId: '699050401031',
-    projectId: 'realtime-chat-c4626',
-    databaseURL: 'https://realtime-chat-c4626-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'realtime-chat-c4626.appspot.com',
+    apiKey: 'AIzaSyB4Nmc1Rj26e7jg8Ubsrtl4emsg0wjyx3s',
+    appId: '1:256905096017:android:47e861467c9c19cce74170',
+    messagingSenderId: '256905096017',
+    projectId: 'chat-app-eb5df',
+    databaseURL: 'https://chat-app-eb5df-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'chat-app-eb5df.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBUaJdWU1LoQ55ydiuO1mUhsAfAT3MtBYs',
-    appId: '1:699050401031:ios:2a0ee43316322239a979a2',
-    messagingSenderId: '699050401031',
-    projectId: 'realtime-chat-c4626',
-    databaseURL: 'https://realtime-chat-c4626-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'realtime-chat-c4626.appspot.com',
-    iosBundleId: 'com.example.agoraChatModule',
+    apiKey: 'AIzaSyC4pQ64SMydUnjRy69OcvsPNiZ8JokukVk',
+    appId: '1:256905096017:ios:677c8fa1a96884c4e74170',
+    messagingSenderId: '256905096017',
+    projectId: 'chat-app-eb5df',
+    databaseURL: 'https://chat-app-eb5df-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'chat-app-eb5df.appspot.com',
+    iosBundleId: 'com.example.chatApp',
   );
+
 }
