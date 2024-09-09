@@ -1,4 +1,4 @@
-# agora_chat_module
+# chat_app
 
 A new Flutter project.
 
