@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
     tools:ignore="ProtectedPermissions" />
    <application
-        android:label="agora_chat_module"
+        android:label="Chat app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <provider
