@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/conversations.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/domain_user.dart';
-import 'package:agora_chat_module/sourav_module/features/chat_module/models/messages.dart';
+import 'package:chat_app/sourav_module/features/chat_module/models/conversations.dart';
+import 'package:chat_app/sourav_module/features/chat_module/models/domain_user.dart';
+import 'package:chat_app/sourav_module/features/chat_module/models/messages.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
