@@ -1,7 +1,10 @@
-import 'login_screen.dart';
-import '../../view_model/chat_view_model.dart';
+import 'package:chat_app/features/chat_module/ui/screens/login_screen.dart';
+import 'package:chat_app/features/chat_module/ui/widgets/signup_custom_text_field.dart';
+import 'package:chat_app/features/chat_module/ui/widgets/social_media_login_button.dart';
+import 'package:flutter/gestures.dart';
+import 'package:lottie/lottie.dart';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -16,6 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController passwordController;
 
   bool isLoading = false;
+  bool isTermsAndConditionAccepted = false;
 
   @override
   void initState() {
@@ -37,133 +41,210 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xFF36454F),
-        body: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Create New User',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 24,
-                    color: Colors.white,
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: displayNameController,
-                  decoration: InputDecoration(
-                    hintText: 'Display name',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(.8)),
-                    prefixIcon: Icon(
-                      Icons.smart_display,
-                      color: Colors.white.withOpacity(.8),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    hintText: 'Email',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(.8)),
-                    prefixIcon: Icon(
-                      Icons.person,
-                      color: Colors.white..withOpacity(.8),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    hintText: 'Password',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(.8)),
-                    prefixIcon: Icon(
-                      Icons.lock,
-                      color: Colors.white.withOpacity(.8),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                StatefulBuilder(builder: (context, setState) {
-                  return Consumer<ChatViewModel>(
-                    builder: (context, value, child) => ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        // backgroundColor:
-                        //     const Color.fromARGB(255, 98, 123, 140),
-                        backgroundColor: Colors.green,
+        resizeToAvoidBottomInset: false,
+        body: LayoutBuilder(builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: constraints.maxWidth,
+                minHeight: constraints.maxHeight,
+              ),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 40),
+                      Row(
+                        children: [
+                          const Text(
+                            'Hey, Hello ',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w700,
+                              height: 37 / 32,
+                            ),
+                          ),
+                          LottieBuilder.asset(
+                            'assets/lottie/hey_animation.json',
+                            height: 40,
+                            width: 40,
+                          )
+                        ],
                       ),
-                      onPressed: isLoading
-                          ? null
-                          : () {
+                      const SizedBox(height: 15),
+                      const Text(
+                        'Enter your details to create\nyour account',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          height: 22 / 18,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          SocialMediaLoginButton(
+                            labelText: 'Google',
+                            labelLogo: 'assets/icons/Google.svg',
+                          ),
+                          SizedBox(width: 20),
+                          SocialMediaLoginButton(
+                            labelText: 'Apple',
+                            labelLogo: 'assets/icons/apple.svg',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: const [
+                          Expanded(child: Divider(color: Colors.white38)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              'or',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                                height: 25 / 20,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: Colors.white38)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SignUpCustomTextField(
+                        controller: displayNameController,
+                        labelText: 'Name',
+                      ),
+                      const SizedBox(height: 20),
+                      SignUpCustomTextField(
+                        controller: emailController,
+                        labelText: 'Email address',
+                      ),
+                      const SizedBox(height: 20),
+                      SignUpCustomTextField(
+                        controller: passwordController,
+                        labelText: 'Password',
+                        isPasswordField: true,
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: isTermsAndConditionAccepted,
+                            side: MaterialStateBorderSide.resolveWith(
+                                (states) =>
+                                    const BorderSide(color: Colors.white)),
+                            shape: const CircleBorder(),
+                            onChanged: (value) {
                               setState(() {
-                                isLoading = true;
-                              });
-                              value
-                                  .createNewUser(
-                                displayName: displayNameController.text,
-                                email: emailController.text,
-                                password: passwordController.text,
-                              )
-                                  .then((isCreated) {
-                                setState(() {
-                                  isLoading = false;
-                                });
-
-                                if (isCreated) {
-                                  Navigator.of(context)
-                                      .pushReplacement(MaterialPageRoute(
-                                    builder: (context) => const LoginScreen(),
-                                  ));
-                                }
+                                isTermsAndConditionAccepted = value ?? false;
                               });
                             },
-                      child: Text(isLoading ? 'Creating...' : 'Create'),
-                    ),
-                  );
-                }),
-                TextButton(
-                  onPressed: () =>
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  )),
-                  child: const Text(
-                    'Already have an account?',
-                    style: TextStyle(color: Colors.white),
+                          ),
+                          RichText(
+                            text: const TextSpan(
+                              text: 'I agree to the ',
+                              style: TextStyle(
+                                color: Color(0XFF777777),
+                                fontSize: 16,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: ' Terms & Privacy',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      Material(
+                        borderRadius: BorderRadius.circular(10),
+                        color: isTermsAndConditionAccepted
+                            ? const Color(0XFF128C7E)
+                            : const Color(0xff333333),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: isTermsAndConditionAccepted ? () {} : null,
+                          child: SizedBox(
+                            height: 48,
+                            child: Center(
+                              child: Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  height: 31 / 26,
+                                  color: !isTermsAndConditionAccepted
+                                      ? Colors.grey.shade700
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      RichText(
+                        text: TextSpan(
+                          text: "Already have an account? ",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 18,
+                            height: 22 / 18,
+                          ),
+                          children: [
+                            TextSpan(
+                                text: "Login",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                  height: 22 / 18,
+                                  color: Color(0XFF0098FF),
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Navigator.of(context)
+                                        .pushReplacement(MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ));
+                                  }),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      const Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          '© 2024 SO, All right Reserved',
+                          style: TextStyle(
+                            color: Color(0XFF777777),
+                            fontWeight: FontWeight.w400,
+                            fontSize: 16,
+                            height: 18 / 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

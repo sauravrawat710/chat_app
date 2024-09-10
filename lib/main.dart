@@ -1,10 +1,12 @@
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:google_fonts/google_fonts.dart';
+
 import 'firebase_options.dart';
-import 'sourav_module/features/chat_module/ui/screens/landing_screen.dart';
-import 'sourav_module/features/chat_module/view_model/chat_view_model.dart';
-import 'sourav_module/features/noitifications/notification_controller.dart';
+import 'features/chat_module/ui/screens/landing_screen.dart';
+import 'features/chat_module/view_model/chat_view_model.dart';
+import 'features/noitifications/notification_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -70,9 +72,16 @@ class _MyAppState extends State<MyApp> {
         scaffoldMessengerKey: scaffoldMessengerKey,
         navigatorKey: globalKey,
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: 'Chat App',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            primary: const Color(0XFF128C7E),
+            secondary: const Color(0XFF128C7E),
+          ),
+          scaffoldBackgroundColor: const Color(0xff010101),
+          primaryTextTheme:
+              GoogleFonts.poppinsTextTheme(Typography.whiteCupertino),
+          textTheme: GoogleFonts.poppinsTextTheme(Typography.whiteCupertino),
         ),
         home: const LandingScreen(),
       ),
