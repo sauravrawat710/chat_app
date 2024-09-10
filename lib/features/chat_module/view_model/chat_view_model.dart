@@ -96,36 +96,53 @@ class ChatViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool?> loginOrLogout({String? email, String? password}) async {
+  Future<bool?> login({required String email, required String password}) async {
     try {
+      isLoading = true;
+      notifyListeners();
+
       final auth = FirebaseAuth.instance;
 
-      if (!isJoined) {
-        final userCred = await auth.signInWithEmailAndPassword(
-          email: email!,
-          password: password!,
-        );
+      final userCred = await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-        if (userCred.user != null) {
-          user = userCred.user!;
-          isJoined = true;
-          await fetchConversations();
-          notifyListeners();
-          return true;
-        }
-        return false;
-      } else {
-        await auth.signOut();
-        isJoined = false;
+      if (userCred.user != null) {
+        user = userCred.user!;
+        isJoined = true;
+        await fetchConversations();
+        isLoading = false;
         notifyListeners();
-        return null;
+        return true;
       }
+
+      return false;
     } on FirebaseAuthException catch (e) {
       showLog(e.message!);
     } catch (e) {
       showLog(e.toString());
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
     return null;
+  }
+
+  Future<bool> logout() async {
+    try {
+      final auth = FirebaseAuth.instance;
+      await auth.signOut();
+      isJoined = false;
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      showLog(e.message!);
+      return false;
+    } catch (e) {
+      showLog(e.toString());
+      return false;
+    }
   }
 
   Future<bool> createNewUser({
@@ -144,7 +161,7 @@ class ChatViewModel extends ChangeNotifier {
       );
 
       if (userCred.user != null) {
-        return _dbService.createNewUserInDB(
+        return await _dbService.createNewUserInDB(
           userID: userCred.user!.uid,
           displayName: displayName,
           email: email,

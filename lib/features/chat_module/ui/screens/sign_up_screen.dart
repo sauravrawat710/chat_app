@@ -1,10 +1,13 @@
+import 'package:chat_app/features/chat_module/ui/screens/conversation_list_screen.dart';
 import 'package:chat_app/features/chat_module/ui/screens/login_screen.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/signup_custom_text_field.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/social_media_login_button.dart';
+import 'package:chat_app/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:lottie/lottie.dart';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -170,32 +173,65 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ],
                       ),
                       const SizedBox(height: 32),
-                      Material(
-                        borderRadius: BorderRadius.circular(10),
-                        color: isTermsAndConditionAccepted
-                            ? const Color(0XFF128C7E)
-                            : const Color(0xff333333),
-                        child: InkWell(
+                      Consumer<ChatViewModel>(builder: (context, vm, child) {
+                        return Material(
                           borderRadius: BorderRadius.circular(10),
-                          onTap: isTermsAndConditionAccepted ? () {} : null,
-                          child: SizedBox(
-                            height: 48,
-                            child: Center(
-                              child: Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w700,
-                                  height: 31 / 26,
-                                  color: !isTermsAndConditionAccepted
-                                      ? Colors.grey.shade700
-                                      : null,
+                          color: isTermsAndConditionAccepted
+                              ? const Color(0XFF128C7E)
+                              : const Color(0xff333333),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: vm.isLoading
+                                ? null
+                                : isTermsAndConditionAccepted
+                                    ? () {
+                                        if (displayNameController
+                                                .text.isEmpty &&
+                                            emailController.text.isEmpty &&
+                                            passwordController.text.isEmpty) {
+                                          return;
+                                        }
+
+                                        context
+                                            .read<ChatViewModel>()
+                                            .createNewUser(
+                                              displayName: displayNameController
+                                                  .text
+                                                  .trim(),
+                                              email:
+                                                  emailController.text.trim(),
+                                              password: passwordController.text
+                                                  .trim(),
+                                            )
+                                            .then(
+                                              (value) => Navigator.of(context)
+                                                  .pushAndRemoveUntil(
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              const ConversationListScreen()),
+                                                      (route) => false),
+                                            );
+                                      }
+                                    : null,
+                            child: SizedBox(
+                              height: 48,
+                              child: Center(
+                                child: Text(
+                                  vm.isLoading ? 'Creating user...' : 'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    height: 31 / 22,
+                                    color: !isTermsAndConditionAccepted
+                                        ? Colors.grey.shade700
+                                        : null,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                       const SizedBox(height: 32),
                       RichText(
                         text: TextSpan(

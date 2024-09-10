@@ -1,9 +1,12 @@
+import 'package:chat_app/features/chat_module/ui/screens/conversation_list_screen.dart';
 import 'package:chat_app/features/chat_module/ui/screens/sign_up_screen.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/signup_custom_text_field.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/social_media_login_button.dart';
+import 'package:chat_app/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,8 +18,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
-
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -124,27 +125,52 @@ class _LoginScreenState extends State<LoginScreen> {
                         isPasswordField: true,
                       ),
                       const SizedBox(height: 32),
-                      Material(
-                        borderRadius: BorderRadius.circular(10),
-                        color: const Color(0XFF128C7E),
-                        child: InkWell(
+                      Consumer<ChatViewModel>(builder: (context, vm, child) {
+                        return Material(
                           borderRadius: BorderRadius.circular(10),
-                          onTap: () {},
-                          child: const SizedBox(
-                            height: 48,
-                            child: Center(
-                              child: Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w700,
-                                  height: 31 / 26,
+                          color: const Color(0XFF128C7E),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: vm.isLoading
+                                ? null
+                                : () {
+                                    if (emailController.text.isEmpty &&
+                                        passwordController.text.isEmpty) {
+                                      return;
+                                    }
+
+                                    context
+                                        .read<ChatViewModel>()
+                                        .login(
+                                          email: emailController.text.trim(),
+                                          password:
+                                              passwordController.text.trim(),
+                                        )
+                                        .then(
+                                          (value) => Navigator.of(context)
+                                              .pushAndRemoveUntil(
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          const ConversationListScreen()),
+                                                  (route) => false),
+                                        );
+                                  },
+                            child: SizedBox(
+                              height: 48,
+                              child: Center(
+                                child: Text(
+                                  vm.isLoading ? 'Login...' : 'Sign Up',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    height: 31 / 22,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                       const SizedBox(height: 32),
                       RichText(
                         text: TextSpan(

@@ -1,3 +1,5 @@
+import 'package:chat_app/features/chat_module/ui/screens/login_screen.dart';
+
 import 'create_group_screen.dart';
 import '../widgets/conversation_list_widget.dart';
 import '../../view_model/chat_view_model.dart';
@@ -29,7 +31,15 @@ class _ConversationListScreenState extends State<ConversationListScreen>
                 ));
               }
               if (value == 'Logout') {
-                context.read<ChatViewModel>().loginOrLogout();
+                context.read<ChatViewModel>().logout().then((isLoggedOut) {
+                  if (isLoggedOut) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                        (route) => false);
+                  }
+                });
               }
             },
             itemBuilder: (BuildContext contesxt) {
