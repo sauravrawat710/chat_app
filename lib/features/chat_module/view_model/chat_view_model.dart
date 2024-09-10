@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import '../../../../main.dart';
+import '../../../main.dart';
 import '../models/conversations.dart';
 import '../models/domain_user.dart';
 import '../models/messages.dart';
