@@ -38,12 +38,14 @@ class RealtimeDBService {
       yield* streamOfData.asyncMap((event) {
         final json = jsonDecode(jsonEncode(event.snapshot.value));
         final conversationList = <Conversations>[];
-        json.forEach((key, value) {
-          final conversation = Conversations.fromJson(json[key]);
-          if (conversation.members.contains(userId)) {
-            conversationList.add(conversation);
-          }
-        });
+        if (json != null) {
+          json.forEach((key, value) {
+            final conversation = Conversations.fromJson(json[key]);
+            if (conversation.members.contains(userId)) {
+              conversationList.add(conversation);
+            }
+          });
+        }
         return conversationList;
       });
     } on FirebaseException catch (e) {
