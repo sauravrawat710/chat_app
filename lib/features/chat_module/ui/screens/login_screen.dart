@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 15),
                       const Text(
-                        'Enter your credentials to login into\n your account',
+                        'Enter your credentials to login into\nyour account',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,

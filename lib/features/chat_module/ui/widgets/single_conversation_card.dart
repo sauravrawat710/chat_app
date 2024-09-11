@@ -40,7 +40,7 @@ class SingleConversationCard extends StatelessWidget {
             title: Text(
               conversations.type == 'private'
                   ? conversations.name.split('_').firstWhere(
-                      (element) => element != chatVm.currentUser!.displayName)
+                      (element) => element != chatVm.currentUser?.displayName)
                   : conversations.name,
               style: const TextStyle(
                 fontSize: 16,
