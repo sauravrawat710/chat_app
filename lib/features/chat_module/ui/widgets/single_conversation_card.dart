@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import '../../models/conversations.dart';
 import '../screens/conversation_chat_screen.dart';
 import '../../view_model/chat_view_model.dart';
@@ -25,54 +23,69 @@ class SingleConversationCard extends StatelessWidget {
           ),
         );
       },
-      child: Column(
-        children: [
-          ListTile(
-            leading: CircleAvatar(
-              radius: 26,
-              backgroundColor: Colors.blueGrey,
-              child: Icon(
-                conversations.type == 'group' ? Icons.group : Icons.person,
-                size: 36,
-                color: Colors.white,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Container(
+          height: 56,
+          width: 62,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            image: const DecorationImage(
+              image: NetworkImage('https://i.pravatar.cc/56'),
+            ),
+          ),
+        ),
+        title: Text(
+          conversations.type == 'private'
+              ? conversations.name.split('_').firstWhere(
+                  (element) => element != chatVm.currentUser?.displayName)
+              : conversations.name,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            height: 24 / 16,
+          ),
+        ),
+        subtitle: Row(
+          children: [
+            Expanded(
+              child: Text(
+                conversations.recentMessage.text,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0XFFB9BAC7),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            title: Text(
-              conversations.type == 'private'
-                  ? conversations.name.split('_').firstWhere(
-                      (element) => element != chatVm.currentUser?.displayName)
-                  : conversations.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            subtitle: Row(
-              children: [
-                const Icon(
-                  Icons.done_all,
-                  color: Colors.blue,
-                  size: 18,
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  conversations.recentMessage.text,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-            trailing: Text(
+          ],
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
               timeago.format(DateTime.fromMillisecondsSinceEpoch(
                 conversations.recentMessage.readBy.sentAt,
               )),
-              style: const TextStyle(fontSize: 12, color: Colors.white),
+              style: const TextStyle(fontSize: 12, color: Color(0XFF128C7E)),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            const CircleAvatar(
+              radius: 10,
+              backgroundColor: Color(0XFF128C7E),
+              child: Text(
+                '2',
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 16.5 / 11,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

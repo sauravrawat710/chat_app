@@ -4,6 +4,8 @@ import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'dart:math' as math;
+
 class ConversationListWidget extends StatefulWidget {
   const ConversationListWidget({Key? key}) : super(key: key);
 
@@ -23,13 +25,19 @@ class _ConversationListWidgetState extends State<ConversationListWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0XFF111B21),
       floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: const Color.fromARGB(255, 90, 207, 150),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: const Color(0XFF25D366),
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => const StartNewConversationScreen())),
-        child: const Icon(Icons.chat, color: Colors.black),
+        child: Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.rotationY(math.pi),
+          child: const Icon(
+            Icons.chat,
+            textDirection: TextDirection.rtl,
+          ),
+        ),
       ),
       body: Consumer<ChatViewModel>(
         builder: (context, value, child) {
