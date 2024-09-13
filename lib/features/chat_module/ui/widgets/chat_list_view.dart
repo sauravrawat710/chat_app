@@ -38,6 +38,7 @@ class _ChatListViewState extends State<ChatListView> {
 
           return ListView.builder(
             controller: widget.scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             reverse: true,
             itemCount: snapshot.docs.length,
             itemBuilder: (context, index) {

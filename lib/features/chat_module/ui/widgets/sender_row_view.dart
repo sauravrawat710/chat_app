@@ -31,75 +31,77 @@ class _SenderRowViewState extends State<SenderRowView> {
     return GestureDetector(
       onTapDown: (TapDownDetails details) => offset = details.globalPosition,
       onLongPress: () => _showPopupMenu(context: context, offset: offset),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(
-                    left: 8.0, right: 5.0, top: 8.0, bottom: 2.0),
-                padding: const EdgeInsets.only(
-                    left: 5.0, right: 5.0, top: 9.0, bottom: 9.0),
-                decoration: const BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: Color(0XFF075E54),
-                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
-                child: CommonMessageWidget(messages: widget.messageData),
+          Container(
+            margin: const EdgeInsets.only(top: 8.0, bottom: 2.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 10,
+            ),
+            decoration: const BoxDecoration(
+              shape: BoxShape.rectangle,
+              color: Color(0XFF128C7E),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                bottomLeft: Radius.circular(10),
+                bottomRight: Radius.circular(10),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(right: 10.0, bottom: 8.0),
-                    child: Text(
-                      intl.DateFormat('hh:mm a').format(
-                          DateTime.fromMillisecondsSinceEpoch(
-                              widget.messageData.sentAt)),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8.0,
+            ),
+            child: CommonMessageWidget(messages: widget.messageData),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 10,
+                width: 20,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      bottom: 0,
+                      right: 10,
+                      child: Icon(
+                        Icons.check,
+                        color: (widget.messageData.seenBy.length ==
+                                chatVm.groupMembers.length)
+                            ? Colors.blue
+                            : Colors.white,
+                        size: 12,
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                    width: 20,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: 10,
-                          child: Icon(
-                            Icons.check,
-                            color: (widget.messageData.seenBy.length ==
-                                    chatVm.groupMembers.length)
-                                ? Colors.blue
-                                : Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                        // if (widget.messageData.seenBy.isNotEmpty)
-                        Positioned(
-                          left: 2,
-                          child: Icon(
-                            Icons.check,
-                            color: (widget.messageData.seenBy.length ==
-                                    chatVm.groupMembers.length)
-                                ? Colors.blue
-                                : Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                      ],
+                    // if (widget.messageData.seenBy.isNotEmpty)
+                    Positioned(
+                      bottom: 0,
+                      left: 2,
+                      child: Icon(
+                        Icons.check,
+                        color: (widget.messageData.seenBy.length ==
+                                chatVm.groupMembers.length)
+                            ? Colors.blue
+                            : Colors.white,
+                        size: 12,
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 5),
+                child: Text(
+                  intl.DateFormat('hh:mm a').format(
+                      DateTime.fromMillisecondsSinceEpoch(
+                          widget.messageData.sentAt)),
+                  style: const TextStyle(
+                    color: Color(0XFFB3B3B3),
+                    fontSize: 8.0,
                   ),
-                ],
+                ),
               ),
             ],
           ),
-          const SizedBox(width: 10),
         ],
       ),
     );
@@ -125,7 +127,7 @@ class _SenderRowViewState extends State<SenderRowView> {
               showBottomSheet(
                 context: context,
                 builder: (context) => BottomSheet(
-                  backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
+                  // backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
                   onClosing: () {},
                   builder: (context) => Column(
                     mainAxisSize: MainAxisSize.min,
@@ -134,7 +136,7 @@ class _SenderRowViewState extends State<SenderRowView> {
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
                           initialValue: widget.messageData.text,
-                          cursorColor: Colors.white,
+                          // cursorColor: Colors.white,
                           keyboardType: TextInputType.multiline,
                           minLines: 1,
                           maxLines: 6,
@@ -163,7 +165,10 @@ class _SenderRowViewState extends State<SenderRowView> {
                                 .messageData
                                 .copyWith(text: updatedMessage));
                           },
-                          child: const Text('Edit'),
+                          child: const Text(
+                            'Edit',
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
                     ],
@@ -171,7 +176,10 @@ class _SenderRowViewState extends State<SenderRowView> {
                 ),
               );
             },
-            child: const Text('Edit'),
+            child: const Text(
+              'Edit',
+              style: TextStyle(color: Colors.black),
+            ),
           ),
         PopupMenuItem(
           onTap: () async {
@@ -179,7 +187,7 @@ class _SenderRowViewState extends State<SenderRowView> {
                 .read<ChatViewModel>()
                 .deleteMessage(widget.messageData.id);
           },
-          child: const Text('Delete'),
+          child: const Text('Delete', style: TextStyle(color: Colors.black)),
         ),
       ],
     );

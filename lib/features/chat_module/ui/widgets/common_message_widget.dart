@@ -73,14 +73,16 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!widget.messages.isSender)
-            Text(
-              '~ ${senderUserInfo?.displayName}',
-              style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-            ),
+          // if (!widget.messages.isSender)
+          //   Text(
+          //     '~ ${senderUserInfo?.displayName}',
+          //     style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
+          //   ),
           Text(
             text,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(
+                color:
+                    widget.messages.isSender ? null : const Color(0XFF010101)),
           ),
         ],
       );
@@ -94,7 +96,8 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       final beforeMention = text.substring(currentPosition, match.start);
       textWidgets.add(Text(
         beforeMention,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(
+            color: widget.messages.isSender ? null : const Color(0XFF010101)),
       ));
 
       // Add the mention with a different style.
@@ -107,17 +110,18 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
     final remainingText = text.substring(currentPosition);
     textWidgets.add(Text(
       remainingText,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(
+          color: widget.messages.isSender ? null : const Color(0XFF010101)),
     ));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!widget.messages.isSender)
-          Text(
-            '~ ${senderUserInfo?.displayName}',
-            style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-          ),
+        // if (!widget.messages.isSender)
+        //   Text(
+        //     '~ ${senderUserInfo?.displayName}',
+        //     style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
+        //   ),
         Row(mainAxisSize: MainAxisSize.min, children: textWidgets),
       ],
     );
@@ -138,7 +142,7 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
     } else {
       textWidgets.add(Text(
         mentionText,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Color(0XFF128C7E)),
       ));
     }
   }

@@ -21,16 +21,15 @@ class ConversationChatScreen extends StatefulWidget {
 class _ConversationChatScreenState extends State<ConversationChatScreen> {
   late final ChatViewModel chatvm;
 
-  late final TextEditingController textEditingController;
+  final TextEditingController textEditingController = TextEditingController();
   late String senderMessage, receiverMessage;
-  late final ScrollController scrollController;
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     chatvm = context.read<ChatViewModel>();
-    textEditingController = TextEditingController();
     textEditingController.addListener(chatvm.detectUserMention);
-    scrollController = ScrollController();
+
     chatvm.setupControllers(
       textEditingController: textEditingController,
       scrollController: scrollController,
@@ -50,55 +49,59 @@ class _ConversationChatScreenState extends State<ConversationChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.read<ChatViewModel>();
     return Scaffold(
-      backgroundColor: const Color(0xFF36454F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
-        leadingWidth: 50.0,
-        titleSpacing: -8.0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.blueGrey,
-            child: Consumer<ChatViewModel>(
-              builder: (context, value, child) => Icon(
-                widget.conversations.type == 'group'
-                    ? Icons.group
-                    : Icons.person,
-                color: Colors.grey[200],
-              ),
+        backgroundColor: Colors.black,
+        leading: InkWell(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Padding(
+            padding: EdgeInsets.only(left: 20),
+            child: Icon(
+              Icons.arrow_back_ios,
+              size: 28,
             ),
           ),
         ),
-        title: Consumer<ChatViewModel>(
-          builder: (context, value, child) => ListTile(
-            title: Text(
-              value.getSelectedConversation.type == 'private'
-                  ? value.getSelectedConversation.name.split('_').firstWhere(
-                      (element) => element != value.currentUser!.displayName)
-                  : value.getSelectedConversation.name,
-              style: const TextStyle(color: Colors.white),
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(5),
+            child: Container(color: const Color(0XFFC4C4C4), height: .2)),
+        title: Row(
+          children: [
+            Container(
+              height: 38,
+              width: 38,
+              decoration: BoxDecoration(
+                image: const DecorationImage(
+                  image: NetworkImage('https://i.pravatar.cc/56'),
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            subtitle: widget.conversations.type == 'group'
-                ? Row(
-                    children: value.groupMembers.map((e) {
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 5),
-                        child: Text(e.displayName,
-                            style: const TextStyle(color: Colors.white)),
-                      );
-                    }).toList(),
-                  )
-                : null,
-          ),
+            Expanded(
+              child: ListTile(
+                title: Text(
+                  vm.getSelectedConversation.type == 'private'
+                      ? vm.getSelectedConversation.name.split('_').firstWhere(
+                          (element) => element != vm.currentUser?.displayName)
+                      : vm.getSelectedConversation.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: const Text('Today at 2:30 pm'),
+              ),
+            ),
+          ],
         ),
         actions: [
           GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const VideoCallScreen()),
+              MaterialPageRoute(builder: (context) => const VoiceCallScreen()),
             ),
-            child: const Icon(Icons.videocam),
+            child: const Icon(Icons.call_outlined),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 20.0, left: 20.0),
@@ -106,9 +109,9 @@ class _ConversationChatScreenState extends State<ConversationChatScreen> {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const VoiceCallScreen()),
+                    builder: (context) => const VideoCallScreen()),
               ),
-              child: const Icon(Icons.call),
+              child: const Icon(Icons.videocam_outlined, size: 28),
             ),
           ),
         ],

@@ -1,3 +1,4 @@
+import 'package:chat_app/features/chat_module/ui/screens/start_new_conversation_screen.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/conversation_list_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -40,13 +41,27 @@ class _ConversationListScreenState extends State<ConversationListScreen>
                 ],
                 inactiveBgColor: const Color(0Xff1A1A1A),
                 labels: const ['Favourites', 'Friends', 'Groups'],
-                onToggle: (index) {
-                  print('switched to: $index');
-                },
+                onToggle: (index) {},
               ),
               const SizedBox(height: 32),
               const Expanded(child: ConversationListWidget()),
             ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          backgroundColor: const Color(0XFF25D366),
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const StartNewConversationScreen(),
+          )),
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.rotationY(math.pi),
+            child: const Icon(
+              Icons.chat,
+              textDirection: TextDirection.rtl,
+            ),
           ),
         ),
         bottomNavigationBar: BottomNavigationBar(
