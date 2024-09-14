@@ -33,6 +33,7 @@ class _ConversationListWidgetState extends State<ConversationListWidget> {
             );
           }
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             itemCount: value.conversationsList.length,
             itemBuilder: (contex, index) => SingleConversationCard(
               conversations: value.conversationsList[index],

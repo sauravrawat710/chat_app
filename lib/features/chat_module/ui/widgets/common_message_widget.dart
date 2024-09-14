@@ -73,11 +73,6 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // if (!widget.messages.isSender)
-          //   Text(
-          //     '~ ${senderUserInfo?.displayName}',
-          //     style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-          //   ),
           Text(
             text,
             style: TextStyle(
@@ -117,11 +112,6 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // if (!widget.messages.isSender)
-        //   Text(
-        //     '~ ${senderUserInfo?.displayName}',
-        //     style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-        //   ),
         Row(mainAxisSize: MainAxisSize.min, children: textWidgets),
       ],
     );
@@ -159,13 +149,6 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
               ? CrossAxisAlignment.center
               : CrossAxisAlignment.start,
           children: [
-            if (!widget.messages.isSender) ...[
-              Text(
-                '~ ${senderUserInfo?.displayName}',
-                style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-              ),
-              const SizedBox(height: 5),
-            ],
             Expanded(
               child: CachedNetworkImage(
                 imageUrl: widget.messages.imageUrl!,
@@ -182,18 +165,17 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!widget.messages.isSender)
-          Text(
-            '~ ${senderUserInfo?.displayName}',
-            style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-          ),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(width: 5),
             Text(
               widget.messages.text,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: widget.messages.isSender
+                    ? Colors.white
+                    : const Color(0XFF010101),
+              ),
               textAlign: TextAlign.left,
             ),
             const SizedBox(width: 5),
@@ -202,16 +184,14 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
                   .read<ChatViewModel>()
                   .downloadAttachments(widget.messages),
               child: CircleAvatar(
-                backgroundColor: Colors.grey.shade600,
+                backgroundColor: const Color(0XFF075E54).withOpacity(.9),
                 radius: 17,
-                child: CircleAvatar(
-                  backgroundColor: widget.messages.isSender
-                      ? const Color(0XFF075E54)
-                      : const Color.fromARGB(255, 80, 79, 79),
+                child: const CircleAvatar(
+                  backgroundColor: Color(0XFF075E54),
                   radius: 15,
                   child: Icon(
                     Icons.download,
-                    color: Colors.grey.shade400,
+                    color: Colors.white,
                     size: 18,
                   ),
                 ),
@@ -227,17 +207,14 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!widget.messages.isSender)
-          Text(
-            '~ ${senderUserInfo?.displayName}',
-            style: const TextStyle(fontSize: 12, color: Color(0XFFE1AD01)),
-          ),
         Column(
           children: [
             Text(
               widget.messages.contactInfo?.fullName ?? '',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: widget.messages.isSender
+                    ? Colors.white
+                    : const Color(0XFF010101),
                 fontSize: 12,
               ),
               textAlign: TextAlign.left,
@@ -245,10 +222,14 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
             const SizedBox(height: 5),
             Text(
               widget.messages.contactInfo?.phoneNumber?.number.toString() ?? '',
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: widget.messages.isSender
+                    ? Colors.white
+                    : const Color(0XFF010101),
+              ),
               textAlign: TextAlign.left,
             ),
-            const Divider(color: Colors.white30),
+            const Divider(),
             TextButton.icon(
               onPressed: () async {
                 final url =
@@ -257,8 +238,14 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
                   launchUrl(Uri.parse(url));
                 }
               },
-              icon: const Icon(Icons.call),
-              label: const Text('Call'),
+              icon: const Icon(
+                Icons.call,
+                color: Color(0XFF128C7E),
+              ),
+              label: const Text('Call',
+                  style: TextStyle(
+                    color: Color(0XFF128C7E),
+                  )),
             ),
           ],
         ),

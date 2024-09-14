@@ -35,7 +35,8 @@ class MapImagePreview extends StatelessWidget {
       child: Text(
         'Static Map Image',
         style: TextStyle(
-          color: Colors.white,
+          // color: Colors.black,
+          color: Color(0XFF010101),
           fontWeight: FontWeight.w900,
         ),
       ),

@@ -610,8 +610,7 @@ class ChatViewModel extends ChangeNotifier {
   late RtcEngine agoraEngine;
   bool _isUserJoined = false;
 
-  List<DomainUser> _listOfRemoteUserJoined = [];
-  List<DomainUser> get listOfRemoteUserJoined => _listOfRemoteUserJoined;
+  List<DomainUser> listOfRemoteUserJoined = [];
 
   bool _isMuted = false;
   bool get isMuted => _isMuted;
@@ -724,7 +723,7 @@ class ChatViewModel extends ChangeNotifier {
             );
 
             NotificationController.createNewNotification(content);
-            _listOfRemoteUserJoined.clear();
+            listOfRemoteUserJoined.clear();
             notifyListeners();
           },
           onUserJoined:
@@ -734,7 +733,7 @@ class ChatViewModel extends ChangeNotifier {
             final user = await _dbService.getUsersFromAgoraIds([remoteUid]);
             print('user ==> ${user.first}');
 
-            _listOfRemoteUserJoined.add(user.first);
+            listOfRemoteUserJoined.add(user.first);
             showLog("Remote user uid:$remoteUid joined the channel");
             showLog("listOfRemoteUserJoined ${listOfRemoteUserJoined.length}");
             notifyListeners();
@@ -748,7 +747,7 @@ class ChatViewModel extends ChangeNotifier {
             final userToRemove = listOfRemoteUserJoined
                 .firstWhere((element) => element.agoraId == remoteUid);
 
-            _listOfRemoteUserJoined.remove(userToRemove);
+            listOfRemoteUserJoined.remove(userToRemove);
             notifyListeners();
           },
         ),

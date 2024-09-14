@@ -32,39 +32,21 @@ class _BuildAudioFileWidgetState extends State<BuildAudioFileWidget> {
       width: 200,
       child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 24,
-            backgroundColor: Colors.orange[800],
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.headphones,
-                  color: Colors.white,
-                ),
-                FutureBuilder(
-                  future: player.getDuration(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      return Text(
-                        snapshot.data!.inMinutes.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
-                )
-              ],
+            backgroundColor: Color(0XFF128C7E),
+            child: Icon(
+              Icons.headphones,
+              color: Colors.white,
+              size: 28,
             ),
           ),
           Expanded(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 IconButton(
+                  padding: EdgeInsets.zero,
                   onPressed: () async {
                     if (player.state == PlayerState.playing) {
                       await player.stop();
@@ -77,14 +59,14 @@ class _BuildAudioFileWidgetState extends State<BuildAudioFileWidget> {
                     player.state == PlayerState.playing
                         ? Icons.stop
                         : Icons.play_arrow,
-                    color: Colors.blueGrey,
+                    color: const Color(0XFF128C7E),
                     size: 40,
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   child: LinearProgressIndicator(
-                    color: Colors.yellow[800],
-                    value: 5,
+                    color: Color(0XFF128C7E),
+                    value: 1,
                   ),
                 ),
               ],

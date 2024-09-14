@@ -1,9 +1,10 @@
+import 'package:chat_app/features/chat_module/ui/widgets/bottom_typing_text_widget.dart';
+import 'package:chat_app/features/chat_module/ui/widgets/chat_list_view.dart';
+import 'package:chat_app/features/chat_module/ui/widgets/typing_indicator.dart';
+
 import '../../models/conversations.dart';
 import 'video_call_screen.dart';
 import 'voice_call_screen.dart';
-import '../widgets/bottom_typing_text_widget.dart';
-import '../widgets/chat_list_view.dart';
-import '../widgets/typing_indicator.dart';
 import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 
@@ -116,68 +117,54 @@ class _ConversationChatScreenState extends State<ConversationChatScreen> {
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            opacity: .1,
-            colorFilter: ColorFilter.mode(
-              Color(0XFF0C151B),
-              BlendMode.difference,
-            ),
-            image: NetworkImage(
-                "https://camo.githubusercontent.com/854a93c27d64274c4f8f5a0b6ec36ee1d053cfcd934eac6c63bed9eaef9764bd/68747470733a2f2f7765622e77686174736170702e636f6d2f696d672f62672d636861742d74696c652d6461726b5f61346265353132653731393562366237333364393131306234303866303735642e706e67"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          children: [
-            Expanded(child: ChatListView(scrollController: scrollController)),
-            Consumer<ChatViewModel>(
-              builder: (context, value, child) {
-                if (value.filteredSuggestions.isNotEmpty) {
-                  return Container(
-                    width: MediaQuery.of(context).size.width - 20,
-                    height: value.filteredSuggestions.length > 5
-                        ? MediaQuery.of(context).size.height / 2.5
-                        : null,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
+      body: Column(
+        children: [
+          Expanded(child: ChatListView(scrollController: scrollController)),
+          Consumer<ChatViewModel>(
+            builder: (context, value, child) {
+              if (value.filteredSuggestions.isNotEmpty) {
+                return Container(
+                  width: MediaQuery.of(context).size.width - 20,
+                  height: value.filteredSuggestions.length > 5
+                      ? MediaQuery.of(context).size.height / 2.5
+                      : null,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: value.filteredSuggestions.map((name) {
+                      return ListTile(
+                        title: Text(
+                          name,
+                          style: const TextStyle(color: Colors.black),
                         ),
-                      ],
-                    ),
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: value.filteredSuggestions.map((name) {
-                        return ListTile(
-                          title: Text(
-                            name,
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                          onTap: () => chatvm.onUserMentionTap(name: name),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                } else {
-                  return const SizedBox.shrink();
-                }
-              },
+                        onTap: () => chatvm.onUserMentionTap(name: name),
+                      );
+                    }).toList(),
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
+          Selector<ChatViewModel, bool>(
+            selector: (context, value) => value.shouldShowTypingIndicator,
+            builder: (context, value, child) => TypingIndicator(
+              showIndicator: value,
             ),
-            Selector<ChatViewModel, bool>(
-              selector: (context, value) => value.shouldShowTypingIndicator,
-              builder: (context, value, child) => TypingIndicator(
-                showIndicator: value,
-              ),
-            ),
-            BottomTypingTextWidget(textEditingController: textEditingController)
-          ],
-        ),
+          ),
+          BottomTypingTextWidget(textEditingController: textEditingController)
+        ],
       ),
     );
   }

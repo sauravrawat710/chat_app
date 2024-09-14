@@ -27,10 +27,10 @@ class _LandingScreenState extends State<LandingScreen> {
         if (value.isJoined && !value.isLoading) {
           return const ConversationListScreen();
         }
-        if (value.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else {
+        if (!value.isJoined && !value.isLoading) {
           return const LoginScreen();
+        } else {
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
