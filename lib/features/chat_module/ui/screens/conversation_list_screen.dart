@@ -1,4 +1,5 @@
 import 'package:chat_app/features/chat_module/ui/screens/start_new_conversation_screen.dart';
+import 'package:chat_app/features/chat_module/ui/widgets/conversation_list_heading_widget.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/conversation_list_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -134,85 +135,6 @@ class _ConversationListScreenState extends State<ConversationListScreen>
           ],
         ),
       ),
-    );
-
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: const Text("elRed"),
-    //     backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
-    //     actions: [
-    //       IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-    //       PopupMenuButton<String>(
-    //         onSelected: (value) {
-    //           if (value == 'New group') {
-    //             Navigator.of(context).push(MaterialPageRoute(
-    //               builder: (context) => const CreateGroupScreen(),
-    //             ));
-    //           }
-    //           if (value == 'Logout') {
-    //             context.read<ChatViewModel>().logout().then((isLoggedOut) {
-    //               if (isLoggedOut) {
-    //                 Navigator.of(context).pushAndRemoveUntil(
-    //                     MaterialPageRoute(
-    //                       builder: (context) => const LoginScreen(),
-    //                     ),
-    //                     (route) => false);
-    //               }
-    //             });
-    //           }
-    //         },
-    //         itemBuilder: (BuildContext contesxt) {
-    //           return [
-    //             const PopupMenuItem(
-    //               value: "New group",
-    //               child: Text("New group"),
-    //             ),
-    //             const PopupMenuItem(
-    //               value: "Settings",
-    //               child: Text("Settings"),
-    //             ),
-    //             const PopupMenuItem(
-    //               value: "Logout",
-    //               child: Text("Logout"),
-    //             ),
-    //           ];
-    //         },
-    //       )
-    //     ],
-    //   ),
-    //   body: const ConversationListWidget(),
-    // );
-  }
-}
-
-class ConversationListHeadingWidget extends StatelessWidget {
-  const ConversationListHeadingWidget({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: const [
-        Text(
-          'Whatsapp',
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.w700,
-            height: 45 / 30,
-          ),
-        ),
-        Spacer(),
-        Icon(Icons.search, size: 30, color: Colors.white),
-        SizedBox(width: 22),
-        CircleAvatar(
-          backgroundColor: Colors.black,
-          backgroundImage: NetworkImage(
-            'https://gravatar.com/avatar/933ed8cbddab2ac4d08106c7841dddf0?s=400&d=robohash&r=x',
-          ),
-        ),
-      ],
     );
   }
 }

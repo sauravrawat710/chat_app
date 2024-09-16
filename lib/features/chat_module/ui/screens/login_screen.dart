@@ -55,18 +55,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 40),
                       Row(
                         children: [
-                          const Text(
-                            'Hey, Welcome back ',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w700,
-                              height: 37 / 32,
+                          const Expanded(
+                            child: Text(
+                              'Hey, Welcome back ',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                height: 37 / 32,
+                              ),
                             ),
                           ),
                           LottieBuilder.asset(
                             'assets/lottie/hey_animation.json',
                             height: 40,
-                            width: 40,
+                            width: 35,
                           )
                         ],
                       ),
@@ -147,13 +149,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                               passwordController.text.trim(),
                                         )
                                         .then(
-                                          (value) => Navigator.of(context)
+                                      (isLoggedIn) {
+                                        if (isLoggedIn ?? false) {
+                                          return Navigator.of(context)
                                               .pushAndRemoveUntil(
                                                   MaterialPageRoute(
                                                       builder: (context) =>
                                                           const ConversationListScreen()),
-                                                  (route) => false),
-                                        );
+                                                  (route) => false);
+                                        }
+                                      },
+                                    );
                                   },
                             child: SizedBox(
                               height: 48,

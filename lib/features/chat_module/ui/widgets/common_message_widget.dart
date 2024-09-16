@@ -1,3 +1,5 @@
+import 'package:chat_app/core/utlis/string_ext.dart';
+
 import '../../models/domain_user.dart';
 import '../../models/messages.dart';
 import 'build_audio_file_widget.dart';
@@ -169,14 +171,18 @@ class _CommonMessageWidgetState extends State<CommonMessageWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(width: 5),
-            Text(
-              widget.messages.text,
-              style: TextStyle(
-                color: widget.messages.isSender
-                    ? Colors.white
-                    : const Color(0XFF010101),
+            Expanded(
+              child: Text(
+                widget.messages.text.overflow,
+                style: TextStyle(
+                  color: widget.messages.isSender
+                      ? Colors.white
+                      : const Color(0XFF010101),
+                ),
+                textAlign: TextAlign.left,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              textAlign: TextAlign.left,
             ),
             const SizedBox(width: 5),
             GestureDetector(

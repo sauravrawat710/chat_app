@@ -48,27 +48,28 @@ class BuildParticipateWidget extends StatelessWidget {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0),
           color: isSelected ? const Color(0xFF36454F) : null,
           child: Row(
             children: [
-              const CircleAvatar(
-                backgroundColor: Colors.blueGrey,
-                radius: 22,
-                child: Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 30,
+              Container(
+                height: 46,
+                width: 52,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: const DecorationImage(
+                    image: NetworkImage('https://i.pravatar.cc/56'),
+                  ),
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 12),
               Text(
                 user.displayName,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  height: 24 / 16,
                 ),
-              )
+              ),
             ],
           ),
         ),

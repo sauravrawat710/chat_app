@@ -27,15 +27,19 @@ class _StartNewConversationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F2C33).withOpacity(.92),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36454F),
-        title: const Text(
-          'Select contact',
-          style: TextStyle(fontSize: 16),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: InkWell(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Padding(
+            padding: EdgeInsets.only(left: 20),
+            child: Icon(
+              Icons.arrow_back_ios,
+              size: 22,
+            ),
+          ),
         ),
-        leadingWidth: 40,
-        titleSpacing: 1,
         actions: selectedUsers.isNotEmpty
             ? [
                 Center(
@@ -50,43 +54,45 @@ class _StartNewConversationScreenState
                       padding: EdgeInsets.all(8.0),
                       child: Text(
                         'New group',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ]
-            : const [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.search),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.more_vert),
-                ),
-              ],
+            : [],
       ),
       body: Consumer<ChatViewModel>(
         builder: (context, value, child) => ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: value.allUserInfo.length + 1,
           itemBuilder: (context, index) {
             if (index == 0) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  BuildNewGroupButton(),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      'Contacts on elRed',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 153, 189, 206),
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Text(
+                    'Select contact',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      height: 45 / 30,
                     ),
                   ),
+                  SizedBox(height: 12),
+                  BuildNewGroupButton(),
+                  SizedBox(height: 10),
+                  Text(
+                    'Contacts on elRed',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 153, 189, 206),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
                 ],
               );
             } else {

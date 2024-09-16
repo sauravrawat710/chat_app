@@ -60,7 +60,7 @@ class _ConversationChatScreenState extends State<ConversationChatScreen> {
             padding: EdgeInsets.only(left: 20),
             child: Icon(
               Icons.arrow_back_ios,
-              size: 28,
+              size: 22,
             ),
           ),
         ),

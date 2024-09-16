@@ -260,7 +260,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                       ),
-                      const Spacer(),
+                      // const Spacer(),
+                      const SizedBox(height: 32),
                       const Align(
                         alignment: Alignment.center,
                         child: Text(

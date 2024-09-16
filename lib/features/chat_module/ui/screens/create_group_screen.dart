@@ -37,35 +37,33 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'New group',
-              style: TextStyle(fontSize: 16, letterSpacing: 1.3),
+        leading: InkWell(
+          onTap: () => Navigator.of(context).pop(),
+          child: const Padding(
+            padding: EdgeInsets.only(left: 20),
+            child: Icon(
+              Icons.arrow_back_ios,
+              size: 22,
             ),
-            Text(
-              'Add participants',
-              style: TextStyle(fontSize: 12, letterSpacing: 1.1),
-            ),
-          ],
+          ),
         ),
-        leadingWidth: 30,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Icon(Icons.search),
-          )
-        ],
-        backgroundColor: const Color(0xFF36454F).withOpacity(.92),
       ),
-      backgroundColor: const Color(0XFF111B21),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'Create New group',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                height: 45 / 30,
+              ),
+            ),
+            const SizedBox(height: 32),
             const Text(
               'Group Name',
               style: TextStyle(color: Colors.white),
@@ -78,7 +76,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 hintText: 'Enter group name',
                 hintStyle: TextStyle(color: Colors.grey),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green),
+                  borderSide: BorderSide(color: Color(0XFF25D366)),
                 ),
               ),
             ),
@@ -94,11 +92,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   itemBuilder: (context, index) {
                     final participant = value.allUserInfo[index];
                     return CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
                       title: Text(
                         participant.displayName,
                         style: const TextStyle(color: Colors.white),
                       ),
-                      activeColor: Colors.green,
+                      activeColor: const Color(0XFF25D366),
                       side: const BorderSide(color: Colors.white),
                       value: selectedParticipants.contains(participant.id),
                       onChanged: (bool? value) {
@@ -121,11 +120,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   child: Consumer<ChatViewModel>(
                     builder: (context, value, child) => ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: const Color(0XFF25D366),
                       ),
-                      onPressed: selectedParticipants.isEmpty
+                      onPressed: (selectedParticipants.isEmpty)
                           ? null
                           : () {
+                              if (groupNameController.value.text.isEmpty) {
+                                return;
+                              }
                               context
                                   .read<ChatViewModel>()
                                   .createNewConversation(

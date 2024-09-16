@@ -11,17 +11,17 @@ class BuildNewGroupButton extends StatelessWidget {
         builder: (context) => const CreateGroupScreen(),
       )),
       child: Padding(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.symmetric(vertical: 18.0),
         child: Row(
           children: const [
             CircleAvatar(
-              backgroundColor: Colors.green,
+              backgroundColor: Color(0XFF25D366),
               child: Icon(
                 Icons.group,
                 color: Colors.white,
               ),
             ),
-            SizedBox(width: 20),
+            SizedBox(width: 12),
             Text(
               'New group',
               style: TextStyle(
