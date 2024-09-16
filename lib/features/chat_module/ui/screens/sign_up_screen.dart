@@ -204,13 +204,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                   .trim(),
                                             )
                                             .then(
-                                              (value) => Navigator.of(context)
+                                          (isLoggedIn) {
+                                            if (isLoggedIn) {
+                                              return Navigator.of(context)
                                                   .pushAndRemoveUntil(
                                                       MaterialPageRoute(
                                                           builder: (context) =>
                                                               const ConversationListScreen()),
-                                                      (route) => false),
-                                            );
+                                                      (route) => false);
+                                            }
+                                          },
+                                        );
                                       }
                                     : null,
                             child: SizedBox(

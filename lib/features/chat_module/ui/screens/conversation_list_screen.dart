@@ -1,7 +1,9 @@
 import 'package:chat_app/features/chat_module/ui/screens/start_new_conversation_screen.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/conversation_list_heading_widget.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/conversation_list_widget.dart';
+import 'package:chat_app/features/chat_module/view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 import 'dart:math' as math;
@@ -15,6 +17,14 @@ class ConversationListScreen extends StatefulWidget {
 
 class _ConversationListScreenState extends State<ConversationListScreen>
     with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatViewModel>().initFirebaseUser();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
