@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:chat_app/features/chat_module/models/conversations.dart';
 import 'package:chat_app/features/chat_module/models/domain_user.dart';
@@ -80,10 +79,7 @@ class RealtimeDBService {
   Future<Conversations> createNewConversationInDB({
     required String name,
     required String createdBy,
-    required Uint8List encryptedSessionKeyForSender,
-    required Uint8List encryptedSessionKeyForRecipient,
-    required String senderUid,
-    required String recipientUid,
+    required Map<String, String> encryptedSessionKeys,
     required List<String> participants,
     required ConversationType conversationType,
   }) async {
@@ -94,19 +90,10 @@ class RealtimeDBService {
         "id": result.key,
         "createdAt": DateTime.now().millisecondsSinceEpoch,
         "createdBy": createdBy,
-        "modifiedby": null,
+        "modifiedBy": null,
         "members": participants,
         "name": name,
-        // 'encryptedSessionKeyForSender':
-        //     base64Encode(encryptedSessionKeyForSender),
-        // 'encryptedSessionKeyForRecipient':
-        //     base64Encode(encryptedSessionKeyForRecipient),
-        'encryptedSessionKeys': {
-          senderUid:
-              base64Encode(encryptedSessionKeyForSender), // Key for the sender
-          recipientUid: base64Encode(
-              encryptedSessionKeyForRecipient), // Key for the recipient
-        },
+        'encryptedSessionKeys': encryptedSessionKeys,
         "recentMessage": {
           "text": "",
           "readBy": {

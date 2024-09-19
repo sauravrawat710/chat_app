@@ -88,25 +88,7 @@ class _ChatListViewState extends State<ChatListView> {
           vm.markMessageAsRead(parsedMessage);
         }
 
-        final encryptedSessionKey =
-            vm.getSelectedConversation.encryptedSessionKeys[vm.user!.uid];
-
-        final senderPrivateKey =
-            await FlutterSecureStorageService().getDecodedPrivateKey();
-
-        final decyptedSessionKey = EncryptionGenerator.rsaDecryptWithPrivateKey(
-          encryptedSessionKey!,
-          senderPrivateKey,
-        );
-
-        final decrpytedMessage = EncryptionGenerator.aesDecrypt(
-          base64Decode(parsedMessage.text),
-          decyptedSessionKey,
-        );
-
-        final decodedMessage = utf8.decode(base64.decode(decrpytedMessage));
-
-        final newMessage = parsedMessage.copyWith(text: decodedMessage);
+        Message newMessage = await _decryptMessage(vm, parsedMessage);
 
         messagesList.add(newMessage);
       }
@@ -114,6 +96,30 @@ class _ChatListViewState extends State<ChatListView> {
     messagesList.sort((a, b) => DateTime.fromMillisecondsSinceEpoch(b.sentAt)
         .compareTo(DateTime.fromMillisecondsSinceEpoch(a.sentAt)));
     return messagesList;
+  }
+
+  Future<Message> _decryptMessage(
+      ChatViewModel vm, Message parsedMessage) async {
+    final encryptedSessionKey =
+        vm.getSelectedConversation.encryptedSessionKeys[vm.user!.uid];
+
+    final senderPrivateKey =
+        await FlutterSecureStorageService().getDecodedPrivateKey();
+
+    final decyptedSessionKey = EncryptionGenerator.rsaDecryptWithPrivateKey(
+      encryptedSessionKey!,
+      senderPrivateKey,
+    );
+
+    final decrpytedMessage = EncryptionGenerator.aesDecrypt(
+      base64Decode(parsedMessage.text),
+      decyptedSessionKey,
+    );
+
+    final decodedMessage = utf8.decode(base64.decode(decrpytedMessage));
+
+    final newMessage = parsedMessage.copyWith(text: decodedMessage);
+    return newMessage;
   }
 }
 

@@ -247,38 +247,49 @@ class ChatViewModel extends ChangeNotifier {
         isLoading = true;
         notifyListeners();
 
+        // Generate a session key for the conversation
         final sessionKey = EncryptionGenerator.generateAESKey();
 
-        final recipientsUserId = participants.firstWhere((e) => e != user?.uid);
+        // Map to hold encrypted session keys for all participants
+        final Map<String, String> encryptedSessionKeys = {};
 
-        final recipientsUser =
-            allUserInfo.firstWhere((element) => element.id == recipientsUserId);
+        // Encrypt session key for each participant
+        for (var participantId in participants) {
+          final participant =
+              allUserInfo.firstWhere((element) => element.id == participantId);
 
+          // Get participant's public key
+          final encodedParticipantPublicKey = participant.publicKey;
+
+          // Decode the public key from PEM format
+          final decodedParticipantPublicKey =
+              EncryptionGenerator.decodePublicKeyFromPem(
+                  encodedParticipantPublicKey);
+
+          // Encrypt the session key with the participant's public key
+          final encryptedSessionKeyForParticipant =
+              EncryptionGenerator.rsaEncryptWithPublicKey(
+                  sessionKey, decodedParticipantPublicKey);
+
+          // Add encrypted session key to the map
+          encryptedSessionKeys[participantId] =
+              base64Encode(encryptedSessionKeyForParticipant);
+        }
+
+        // Also encrypt the session key for the current user (sender)
         final decodedSenderPublicKey =
             await FlutterSecureStorageService().getDecodedPublicKey();
-
-        final encodedRecipientPublicKey = recipientsUser.publicKey;
-
-        final decodedRecipientPublicKey =
-            EncryptionGenerator.decodePublicKeyFromPem(
-                encodedRecipientPublicKey);
-
         final encryptedSessionKeyForSender =
             EncryptionGenerator.rsaEncryptWithPublicKey(
                 sessionKey, decodedSenderPublicKey);
-
-        final encryptedSessionKeyForRecipient =
-            EncryptionGenerator.rsaEncryptWithPublicKey(
-                sessionKey, decodedRecipientPublicKey);
+        encryptedSessionKeys[user!.uid] =
+            base64Encode(encryptedSessionKeyForSender);
 
         return await _dbService.createNewConversationInDB(
           name: name,
           participants: [...participants, user!.uid],
           createdBy: user!.uid,
-          encryptedSessionKeyForSender: encryptedSessionKeyForSender,
-          encryptedSessionKeyForRecipient: encryptedSessionKeyForRecipient,
-          senderUid: user!.uid,
-          recipientUid: recipientsUserId,
+          encryptedSessionKeys: encryptedSessionKeys,
           conversationType: conversationType,
         );
       } catch (e) {
@@ -296,8 +307,13 @@ class ChatViewModel extends ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      _dbService.getConversationsByUserId(user!.uid).listen((conv) {
+      _dbService.getConversationsByUserId(user!.uid).listen((conv) async {
         conversationsList = conv;
+
+        for (var conversation in conversationsList) {
+          await _decyptRecentMessages(conversation);
+        }
+
         conversationsList.sort((a, b) =>
             DateTime.fromMillisecondsSinceEpoch(b.recentMessage.readBy.sentAt)
                 .compareTo(DateTime.fromMillisecondsSinceEpoch(
@@ -311,6 +327,29 @@ class ChatViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _decyptRecentMessages(Conversations conversation) async {
+    final encryptedSessionKey = conversation.encryptedSessionKeys[user!.uid];
+
+    final privateKey =
+        await FlutterSecureStorageService().getDecodedPrivateKey();
+
+    final decyptedSessionKey = EncryptionGenerator.rsaDecryptWithPrivateKey(
+      encryptedSessionKey!,
+      privateKey,
+    );
+
+    final decrpytedMessage = EncryptionGenerator.aesDecrypt(
+      base64Decode(conversation.recentMessage.text),
+      decyptedSessionKey,
+    );
+
+    final decodedMessage = utf8.decode(base64.decode(decrpytedMessage));
+
+    final newMessage =
+        conversation.recentMessage.copyWith(text: decodedMessage);
+    conversation.recentMessage = newMessage;
   }
 
   void fetchConversationByConversationId() async {
