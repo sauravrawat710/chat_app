@@ -6,6 +6,7 @@ class DomainUser {
   final String displayName;
   final String email;
   final String photoUrl;
+  final String publicKey;
   final List<String> conversations;
 
   DomainUser({
@@ -14,6 +15,7 @@ class DomainUser {
     required this.displayName,
     required this.email,
     required this.photoUrl,
+    required this.publicKey,
     required this.conversations,
   });
 
@@ -23,6 +25,7 @@ class DomainUser {
     String? displayName,
     String? email,
     String? photoUrl,
+    String? publicKey,
     List<String>? conversations,
   }) =>
       DomainUser(
@@ -31,6 +34,7 @@ class DomainUser {
         displayName: displayName ?? this.displayName,
         email: email ?? this.email,
         photoUrl: photoUrl ?? this.photoUrl,
+        publicKey: publicKey ?? this.publicKey,
         conversations: conversations ?? this.conversations,
       );
 
@@ -45,6 +49,7 @@ class DomainUser {
         displayName: json["displayName"],
         email: json["email"],
         photoUrl: json["photoUrl"],
+        publicKey: json["publicKey"],
         conversations: json["conversations"] != null
             ? List<String>.from(json["conversations"].map((x) => x))
             : [],
@@ -56,6 +61,7 @@ class DomainUser {
         "displayName": displayName,
         "email": email,
         "photoUrl": photoUrl,
+        "publicKey": publicKey,
         "conversations": List<dynamic>.from(conversations.map((x) => x)),
       };
 }

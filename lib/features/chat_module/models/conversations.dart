@@ -1,18 +1,18 @@
-import 'dart:developer';
-
-import 'package:meta/meta.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // For Uint8List
 
 class Conversations {
-  final String id;
-  final int createdAt;
-  final String createdBy;
-  final String? modifiedBy;
-  final List<String> members;
-  final String name;
-  final RecentMessage recentMessage;
-  final String type;
-  final List<String> typingUsers;
+  String id;
+  int createdAt;
+  String createdBy;
+  String? modifiedBy;
+  List<String> members;
+  String name;
+  Map<String, Uint8List>
+      encryptedSessionKeys; // Store session keys with user IDs as keys
+  RecentMessage recentMessage;
+  String type;
+  List<String> typingUsers;
 
   Conversations({
     required this.id,
@@ -21,41 +21,22 @@ class Conversations {
     this.modifiedBy,
     required this.members,
     required this.name,
+    required this.encryptedSessionKeys,
     required this.recentMessage,
     required this.type,
     required this.typingUsers,
   });
 
-  Conversations copyWith({
-    String? id,
-    int? createdAt,
-    String? createdBy,
-    String? modifiedBy,
-    List<String>? members,
-    String? name,
-    RecentMessage? recentMessage,
-    String? type,
-    List<String>? typingUsers,
-  }) =>
-      Conversations(
-        id: id ?? this.id,
-        createdAt: createdAt ?? this.createdAt,
-        createdBy: createdBy ?? this.createdBy,
-        modifiedBy: modifiedBy ?? this.modifiedBy,
-        members: members ?? this.members,
-        name: name ?? this.name,
-        recentMessage: recentMessage ?? this.recentMessage,
-        type: type ?? this.type,
-        typingUsers: typingUsers ?? this.typingUsers,
-      );
-
-  factory Conversations.fromRawJson(String str) =>
-      Conversations.fromJson(json.decode(str));
-
-  String toRawJson() => json.encode(toJson());
-
+  // Factory method to convert from JSON to Conversations model
   factory Conversations.fromJson(Map<String, dynamic> json) {
-    log(json['id'].toString());
+    // Decode the session keys map from Base64
+    Map<String, Uint8List> sessionKeys = {};
+    if (json['encryptedSessionKeys'] != null) {
+      sessionKeys = (json['encryptedSessionKeys'] as Map<String, dynamic>).map(
+        (key, value) => MapEntry(key, base64Decode(value)),
+      );
+    }
+
     return Conversations(
       id: json["id"],
       createdAt: json["createdAt"],
@@ -63,6 +44,7 @@ class Conversations {
       modifiedBy: json["modifiedBy"],
       members: List<String>.from(json["members"].map((x) => x)),
       name: json["name"],
+      encryptedSessionKeys: sessionKeys,
       recentMessage: RecentMessage.fromJson(json["recentMessage"]),
       type: json["type"],
       typingUsers: json["typingUsers"] != null
@@ -71,17 +53,23 @@ class Conversations {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "createdAt": createdAt,
-        "createdBy": createdBy,
-        "modifiedBy": modifiedBy,
-        "members": List<String>.from(members.map((x) => x)),
-        "name": name,
-        "recentMessage": recentMessage.toJson(),
-        "type": type,
-        "typingUsers": List<String>.from(typingUsers.map((x) => x)),
-      };
+  // Convert Conversations model back to JSON (to store in Firebase)
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "createdAt": createdAt,
+      "createdBy": createdBy,
+      "modifiedBy": modifiedBy,
+      "members": List<dynamic>.from(members.map((x) => x)),
+      "name": name,
+      "encryptedSessionKeys": encryptedSessionKeys.map(
+        (key, value) => MapEntry(key, base64Encode(value)),
+      ),
+      "recentMessage": recentMessage.toJson(),
+      "type": type,
+      "typingUsers": List<dynamic>.from(typingUsers.map((x) => x)),
+    };
+  }
 }
 
 class RecentMessage {

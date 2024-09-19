@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+
+import 'package:chat_app/core/utlis/flutter_secure_storage.dart';
+import 'package:chat_app/core/utlis/encryption_generator.dart';
 
 import '../../../main.dart';
 import '../models/conversations.dart';
@@ -23,6 +27,10 @@ import 'package:path_provider/path_provider.dart';
 
 class ChatViewModel extends ChangeNotifier {
   ChatViewModel() {
+    initFirebaseUser();
+  }
+
+  void initFirebaseUser() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       isLoading = true;
@@ -154,6 +162,15 @@ class ChatViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
+      final storage = FlutterSecureStorageService();
+      final keyPair = await EncryptionGenerator.generateRSAKeyPair();
+      await storage.storeKeys(keyPair);
+      final publicKey = await storage.getPublicKey();
+
+      if (publicKey == null) {
+        return false;
+      }
+
       final userCred =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -165,6 +182,7 @@ class ChatViewModel extends ChangeNotifier {
           userID: userCred.user!.uid,
           displayName: displayName,
           email: email,
+          publicKey: publicKey,
         );
       }
       return false;
@@ -181,6 +199,9 @@ class ChatViewModel extends ChangeNotifier {
   }
 
   Future<void> fetchAllUserOnboard() async {
+    if (user == null) {
+      return;
+    }
     allUserInfo.clear();
     isLoading = true;
     final users = await _dbService.getAllUsersFromDB();
@@ -225,10 +246,39 @@ class ChatViewModel extends ChangeNotifier {
       try {
         isLoading = true;
         notifyListeners();
+
+        final sessionKey = EncryptionGenerator.generateAESKey();
+
+        final recipientsUserId = participants.firstWhere((e) => e != user?.uid);
+
+        final recipientsUser =
+            allUserInfo.firstWhere((element) => element.id == recipientsUserId);
+
+        final decodedSenderPublicKey =
+            await FlutterSecureStorageService().getDecodedPublicKey();
+
+        final encodedRecipientPublicKey = recipientsUser.publicKey;
+
+        final decodedRecipientPublicKey =
+            EncryptionGenerator.decodePublicKeyFromPem(
+                encodedRecipientPublicKey);
+
+        final encryptedSessionKeyForSender =
+            EncryptionGenerator.rsaEncryptWithPublicKey(
+                sessionKey, decodedSenderPublicKey);
+
+        final encryptedSessionKeyForRecipient =
+            EncryptionGenerator.rsaEncryptWithPublicKey(
+                sessionKey, decodedRecipientPublicKey);
+
         return await _dbService.createNewConversationInDB(
           name: name,
           participants: [...participants, user!.uid],
           createdBy: user!.uid,
+          encryptedSessionKeyForSender: encryptedSessionKeyForSender,
+          encryptedSessionKeyForRecipient: encryptedSessionKeyForRecipient,
+          senderUid: user!.uid,
+          recipientUid: recipientsUserId,
           conversationType: conversationType,
         );
       } catch (e) {
@@ -423,11 +473,29 @@ class ChatViewModel extends ChangeNotifier {
 
     switch (type) {
       case MessageType.TEXT:
+        final senderEncryptedSessionKey =
+            getSelectedConversation.encryptedSessionKeys[user!.uid]!;
+
+        final senderPrivateKey =
+            await FlutterSecureStorageService().getDecodedPrivateKey();
+
+        final decyptedSessionKey = EncryptionGenerator.rsaDecryptWithPrivateKey(
+          senderEncryptedSessionKey,
+          senderPrivateKey,
+        );
+
+        final message = base64.encode(utf8.encode(messageBoxController.text));
+
+        final encrpytedMessage = EncryptionGenerator.aesEncrypt(
+          message,
+          decyptedSessionKey,
+        );
+
         _dbService
             .postNewMessage(
           user: user!,
           conversationId: conversationId,
-          text: messageBoxController.text,
+          text: base64Encode(encrpytedMessage),
           type: type,
         )
             .listen((event) {

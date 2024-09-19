@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:chat_app/features/chat_module/models/conversations.dart';
 import 'package:chat_app/features/chat_module/models/domain_user.dart';
@@ -79,6 +80,10 @@ class RealtimeDBService {
   Future<Conversations> createNewConversationInDB({
     required String name,
     required String createdBy,
+    required Uint8List encryptedSessionKeyForSender,
+    required Uint8List encryptedSessionKeyForRecipient,
+    required String senderUid,
+    required String recipientUid,
     required List<String> participants,
     required ConversationType conversationType,
   }) async {
@@ -92,8 +97,18 @@ class RealtimeDBService {
         "modifiedby": null,
         "members": participants,
         "name": name,
+        // 'encryptedSessionKeyForSender':
+        //     base64Encode(encryptedSessionKeyForSender),
+        // 'encryptedSessionKeyForRecipient':
+        //     base64Encode(encryptedSessionKeyForRecipient),
+        'encryptedSessionKeys': {
+          senderUid:
+              base64Encode(encryptedSessionKeyForSender), // Key for the sender
+          recipientUid: base64Encode(
+              encryptedSessionKeyForRecipient), // Key for the recipient
+        },
         "recentMessage": {
-          "text": "this is latest message",
+          "text": "",
           "readBy": {
             "sentAt": DateTime.now().millisecondsSinceEpoch,
             "sentBy": createdBy,
@@ -140,6 +155,7 @@ class RealtimeDBService {
     required String userID,
     required String displayName,
     required String email,
+    required String publicKey,
   }) async {
     try {
       final newUserRef = usersRef.child(userID);
@@ -149,6 +165,7 @@ class RealtimeDBService {
         "displayName": displayName,
         "email": email,
         "photoUrl": "",
+        "publicKey": publicKey,
         "conversations": []
       });
 
