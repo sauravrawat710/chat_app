@@ -38,7 +38,7 @@ class _ConversationChatScreenState extends State<ConversationChatScreen> {
       scrollController: scrollController,
     );
     chatvm.fetchGroupConversationMembers(widget.conversations.id);
-    // chatvm.fetchConversationByConversationId();
+    chatvm.fetchConversationByConversationId();
 
     super.initState();
   }

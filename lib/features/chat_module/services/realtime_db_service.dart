@@ -406,12 +406,12 @@ class RealtimeDBService {
 
   void updateUserAsTyper({
     required String conversationId,
-    required List<String> updatedTypers,
+    required Set<String> updatedTypers,
   }) async {
     try {
       await conversationRef
           .child(conversationId)
-          .update({"typingUsers": updatedTypers});
+          .update({"typingUsers": updatedTypers.toList()});
     } on FirebaseException catch (e) {
       log(e.message.toString());
     } catch (e) {

@@ -367,8 +367,9 @@ class ChatViewModel extends ChangeNotifier {
         .streamConversationsByConversationId(getSelectedConversation.id)
         .listen((conv) {
       if (conv.typingUsers.isNotEmpty) {
-        if (!(conv.typingUsers.length == 1 &&
-            conv.typingUsers.contains(user!.uid))) {
+        final isOtherUserTyping = !(conv.typingUsers.length == 1 &&
+            conv.typingUsers.contains(user!.uid));
+        if (isOtherUserTyping) {
           conversationsList = conversationsList.map((e) {
             if (e.id == conv.id) {
               return conv;
@@ -680,12 +681,17 @@ class ChatViewModel extends ChangeNotifier {
   }
 
   void showTypingIndicator([bool isUserTyping = false]) async {
-    final typers = [...getSelectedConversation.typingUsers];
+    final typers = {...getSelectedConversation.typingUsers};
     if (isUserTyping) {
+      // if (!typers.contains(user!.uid)) {
+      //   return;
+      // }
       typers.add(user!.uid);
     } else {
       typers.remove(user!.uid);
     }
+
+    print('typers ==> $typers');
 
     try {
       _dbService.updateUserAsTyper(
