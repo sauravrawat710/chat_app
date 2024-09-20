@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:chat_app/core/utlis/flutter_secure_storage.dart';
 import 'package:chat_app/core/utlis/encryption_generator.dart';
+import 'package:chat_app/features/chat_module/services/presence_system_service.dart';
 
 import '../../../main.dart';
 import '../models/conversations.dart';
@@ -38,7 +39,15 @@ class ChatViewModel extends ChangeNotifier {
       this.user = user;
 
       _dbService.getUsersFromUserIds([user.uid]).then((users) {
-        currentUser = users.first;
+        if (users.isEmpty) {
+          this.user = null;
+          isJoined = false;
+          isLoading = false;
+          return;
+        } else {
+          currentUser = users.first;
+          _presenceService.monitorUserPresence();
+        }
       });
       isLoading = false;
       notifyListeners();
@@ -48,6 +57,7 @@ class ChatViewModel extends ChangeNotifier {
   User? user;
 
   final _dbService = RealtimeDBService();
+  final _presenceService = PresenceSystemService();
 
   bool isJoined = false;
   bool isLoading = false;

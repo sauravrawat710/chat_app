@@ -1,3 +1,4 @@
+import 'package:chat_app/features/chat_module/services/presence_system_service.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/bottom_typing_text_widget.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/chat_list_view.dart';
 import 'package:chat_app/features/chat_module/ui/widgets/typing_indicator.dart';
@@ -5,6 +6,7 @@ import 'package:chat_app/features/chat_module/ui/widgets/typing_indicator.dart';
 import '../../models/conversations.dart';
 import 'video_call_screen.dart';
 import 'voice_call_screen.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import '../../view_model/chat_view_model.dart';
 import 'package:flutter/material.dart';
 
@@ -91,7 +93,30 @@ class _ConversationChatScreenState extends State<ConversationChatScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                subtitle: const Text('Today at 2:30 pm'),
+                subtitle: StreamBuilder<PresenceStatus?>(
+                  stream: PresenceSystemService().getUserStatus(
+                    vm.getSelectedConversation.members
+                        .firstWhere((element) => element != vm.user?.uid),
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      if (snapshot.data!.online) {
+                        return const Text(
+                          'Online',
+                          style: TextStyle(color: Color(0XFF128C7E)),
+                        );
+                      } else {
+                        final formmatedTime = timeago.format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                              snapshot.data!.lastSeen),
+                        );
+                        return Text(formmatedTime);
+                      }
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  },
+                ),
               ),
             ),
           ],

@@ -24,13 +24,12 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget build(BuildContext context) {
     return Consumer<ChatViewModel>(
       builder: (context, value, child) {
-        if (value.isJoined && !value.isLoading) {
-          return const ConversationListScreen();
-        }
-        if (!value.isJoined && !value.isLoading) {
-          return const LoginScreen();
-        } else {
+        if (value.isLoading) {
           return const Center(child: CircularProgressIndicator());
+        } else if (value.isJoined && !value.isLoading) {
+          return const ConversationListScreen();
+        } else {
+          return const LoginScreen();
         }
       },
     );

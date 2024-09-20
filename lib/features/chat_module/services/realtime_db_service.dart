@@ -183,6 +183,9 @@ class RealtimeDBService {
     final List<DomainUser> usersList = [];
     for (String userId in listOfUserId) {
       final result = await usersRef.child(userId).get();
+      if (!result.exists) {
+        return usersList;
+      }
       final mapOfData = Map<String, dynamic>.from(result.value as Map);
       final domainUser = DomainUser.fromJson(mapOfData);
       usersList.add(domainUser);
