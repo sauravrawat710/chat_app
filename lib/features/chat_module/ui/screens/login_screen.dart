@@ -54,15 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const SizedBox(height: 40),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Expanded(
-                            child: Text(
-                              'Hey, Welcome back ',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                height: 37 / 32,
-                              ),
+                          const Text(
+                            'Hey, Welcome back ',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w700,
+                              height: 37 / 30,
                             ),
                           ),
                           LottieBuilder.asset(

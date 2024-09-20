@@ -264,8 +264,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                       ),
-                      // const Spacer(),
-                      const SizedBox(height: 32),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                      ),
                       const Align(
                         alignment: Alignment.center,
                         child: Text(
