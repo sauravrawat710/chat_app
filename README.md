@@ -35,6 +35,16 @@ Welcome to the **Flutter WhatsApp (Rethinked!)** — a powerful, secure, and fea
 - Know if your friends are online or offline in real-time.
 - See when users were last active, enhancing your chat experience.
 
+### ✏️ **Typing Indicator**
+
+- Know when someone is typing a message in real-time.
+- A helpful typing indicator lets you stay updated during conversations.
+
+### ✅ **Read Receipts & Delivery Status**
+
+- **Delivery Status**: Easily see when your messages have been successfully delivered.
+- **Read Receipts**: Know when your messages have been read by the recipient with intuitive indicators.
+
 ### ✏️ **Edit Messages**
 
 - Made a mistake? No worries! Edit your sent messages anytime.
