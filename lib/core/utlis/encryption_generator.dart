@@ -67,10 +67,10 @@ class EncryptionGenerator {
       ..init(false, ParametersWithIV(KeyParameter(key), iv));
 
     final decryptedData = _processBlocks(cipher, cipherText);
-    final unpaddedData = _removePadding(decryptedData); // Remove PKCS7 padding
+    // final unpaddedData = _removePadding(decryptedData); // Remove PKCS7 padding
 
     // Convert decrypted bytes back to the original string (UTF-8 decoding)
-    return utf8.decode(unpaddedData);
+    return utf8.decode(decryptedData);
   }
 
 // Helper function to process the input blocks for encryption/decryption
