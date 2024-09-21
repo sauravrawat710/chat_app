@@ -6,7 +6,7 @@
 
 ![](assets/gif/ScreenRecording2024-09-21at6.26.39PM-ezgif.com-optimize.gif)
 
-![](assets/images/Screenshot_1726905967.png)
+<img src="assets/images/Screenshot_1726905967.png" width="200" />
 
 ![](assets/images/Screenshot_1726909206.png)
 
