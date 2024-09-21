@@ -9,6 +9,8 @@
 <p float="left">
 <img src="assets/images/Screenshot_1726905967.png" width="200" />
 
+<img src="assets/images/Screenshot_1726908119.png" width="200" />
+
 <img src="assets/images/Screenshot_1726909206.png" width="200" />
 
 <img src="assets/images/Screenshot_1726906152.png" width="200" />
