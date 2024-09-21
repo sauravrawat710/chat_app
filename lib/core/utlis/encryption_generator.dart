@@ -45,65 +45,96 @@ class EncryptionGenerator {
     return seed;
   }
 
-// AES encryption (CBC mode with PKCS7 padding)
+  // AES encryption (CBC mode with PKCS7 padding)
   static Uint8List aesEncrypt(String plainText, Uint8List key) {
     final iv = _getSecureRandom().nextBytes(16); // Random 16-byte IV
     final cipher = CBCBlockCipher(AESEngine())
       ..init(true, ParametersWithIV(KeyParameter(key), iv));
 
+    // Encrypt the plaintext
     final encryptedData =
         _processBlocks(cipher, Uint8List.fromList(utf8.encode(plainText)));
 
-    // Combine IV and encrypted data
+    // Combine IV and encrypted data (IV + Ciphertext)
     return Uint8List.fromList(iv + encryptedData);
   }
 
 // AES decryption (CBC mode with PKCS7 padding)
   static String aesDecrypt(Uint8List cipherTextWithIv, Uint8List key) {
+    // Ensure the input data is at least larger than the IV (16 bytes)
+    if (cipherTextWithIv.length < 16) {
+      throw ArgumentError("Ciphertext is too short");
+    }
+
+    // Extract the IV and ciphertext
     final iv = cipherTextWithIv.sublist(0, 16); // Extract the IV
     final cipherText = cipherTextWithIv.sublist(16); // Extract the ciphertext
 
+    // Initialize the decryption cipher
     final cipher = CBCBlockCipher(AESEngine())
       ..init(false, ParametersWithIV(KeyParameter(key), iv));
 
+    // Decrypt the ciphertext
     final decryptedData = _processBlocks(cipher, cipherText);
-    // final unpaddedData = _removePadding(decryptedData); // Remove PKCS7 padding
+
+    // Remove PKCS7 padding and convert back to string
+    final unpaddedData = _removePadding(decryptedData);
 
     // Convert decrypted bytes back to the original string (UTF-8 decoding)
-    return utf8.decode(decryptedData);
+    return utf8.decode(unpaddedData);
   }
 
 // Helper function to process the input blocks for encryption/decryption
   static Uint8List _processBlocks(BlockCipher cipher, Uint8List input) {
     final blockSize = cipher.blockSize;
 
-    // Add padding to input to match block size
+    // Add padding to input to match block size for encryption
     final paddedInput = _addPadding(input, blockSize);
 
     final output = Uint8List(paddedInput.length);
 
     for (var offset = 0; offset < paddedInput.length;) {
-      final blockSize =
+      final processedBlockSize =
           cipher.processBlock(paddedInput, offset, output, offset);
-      offset += blockSize;
+      offset += processedBlockSize;
     }
 
     return output;
   }
 
-// Add PKCS7 padding
+  // Add PKCS7 padding
   static Uint8List _addPadding(Uint8List data, int blockSize) {
     final padder = PKCS7Padding();
     final paddedLength = (data.length + blockSize - 1) ~/ blockSize * blockSize;
     final paddedData = Uint8List(paddedLength)..setRange(0, data.length, data);
 
+    // Apply PKCS7 padding to fill up remaining space in the last block
     padder.addPadding(paddedData, data.length);
     return paddedData;
   }
 
-// Remove PKCS7 padding after decryption
+  // Remove PKCS7 padding after decryption
   static Uint8List _removePadding(Uint8List paddedData) {
+    if (paddedData.isEmpty) {
+      throw ArgumentError("Padded data cannot be empty");
+    }
+
     int paddingLength = paddedData.last;
+
+    // Ensure padding length is valid (between 1 and block size, typically 16 for AES)
+    if (paddingLength < 1 || paddingLength > 16) {
+      throw ArgumentError("Invalid padding length: $paddingLength");
+    }
+
+    // Verify that the padding bytes are consistent
+    for (int i = paddedData.length - paddingLength;
+        i < paddedData.length;
+        i++) {
+      if (paddedData[i] != paddingLength) {
+        throw ArgumentError("Invalid padding detected");
+      }
+    }
+
     return paddedData.sublist(0, paddedData.length - paddingLength);
   }
 

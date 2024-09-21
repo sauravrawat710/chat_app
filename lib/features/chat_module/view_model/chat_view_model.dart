@@ -321,7 +321,9 @@ class ChatViewModel extends ChangeNotifier {
         conversationsList = conv;
 
         for (var conversation in conversationsList) {
-          await _decyptRecentMessages(conversation);
+          if (conversation.recentMessage.text.isNotEmpty) {
+            await _decyptRecentMessages(conversation);
+          }
         }
 
         conversationsList.sort((a, b) =>

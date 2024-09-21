@@ -88,9 +88,13 @@ class _ChatListViewState extends State<ChatListView> {
           vm.markMessageAsRead(parsedMessage);
         }
 
-        Message newMessage = await _decryptMessage(vm, parsedMessage);
+        if (parsedMessage.type == MessageType.TEXT) {
+          Message newMessage = await _decryptMessage(vm, parsedMessage);
 
-        messagesList.add(newMessage);
+          messagesList.add(newMessage);
+        } else {
+          messagesList.add(parsedMessage);
+        }
       }
     }
     messagesList.sort((a, b) => DateTime.fromMillisecondsSinceEpoch(b.sentAt)
