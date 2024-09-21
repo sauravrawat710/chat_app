@@ -4,7 +4,7 @@
 
 ## 🖥️ Demo
 
-<img src="assets/gif/ScreenRecording2024-09-21at6.26.39PM-ezgif.com-optimize.gif" width="200"/>
+<img src="assets/gif/ScreenRecording2024-09-21at6.26.39PM-ezgif.com-optimize.gif" height="500"/>
 
 <p float="left">
 <img src="assets/images/Screenshot_1726905967.png" width="200" />
