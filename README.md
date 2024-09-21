@@ -6,6 +6,12 @@
 
 ![](assets/gif/ScreenRecording2024-09-21at6.26.39PM-ezgif.com-optimize.gif)
 
+![](assets/images/Screenshot_1726905967.png)
+
+![](assets/images/Screenshot_1726909206.png)
+
+![](assets/images/Screenshot_1726906152.png)
+
 ## 🚀 Features
 
 ### 🔐 **Authentication**
