@@ -1,6 +1,6 @@
 # 📱 Flutter WhatsApp (Rethinked!)
 
-Welcome to the **Flutter WhatsApp (Rethinked!)** — a powerful, secure, and feature-rich messaging platform built using Flutter & Firebase. This app provides a smooth, real-time messaging experience with a focus on privacy and user convenience. Whether you're chatting one-on-one or in groups, this app offers everything you need to stay connected!
+**Flutter WhatsApp (Rethinked!)** — a powerful, secure, and feature-rich messaging platform built using Flutter & Firebase. This app provides a smooth, real-time messaging experience with a focus on privacy and user convenience. Whether you're chatting one-on-one or in groups, this app offers everything you need to stay connected!
 
 ## 🚀 Features
 
